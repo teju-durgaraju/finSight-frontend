@@ -1,0 +1,30 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0"><app-lucide-icon name="pie-chart" class="me-2"></app-lucide-icon>Budget Overview</h5>
+  </div>
+  <div class="card-body">
+    <div *ngIf="budgets && budgets.length > 0; else noBudgets">
+      <div *ngFor="let budget of budgets" class="mb-3">
+        <h6>{{ budget.category }} ({{ budget.amountAllocated | currency }})</h6>
+        <div class="progress" style="height: 20px;">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            [style.width.%]="getBudgetProgress(budget)"
+            [ngClass]="getProgressBarClass(getBudgetProgress(budget))"
+            [attr.aria-valuenow]="getBudgetProgress(budget)"
+            aria-valuemin="0"
+            aria-valuemax="100">
+            {{ (budget.amountSpent || 0) | currency }}/{{ getBudgetProgress(budget) }}%
+          </div>
+        </div>
+        <small class="text-muted">
+          {{ budget.startDate | date:'MMM d' }} - {{ budget.endDate | date:'MMM d, yyyy' }}
+        </small>
+      </div>
+    </div>
+    <ng-template #noBudgets>
+      <p class="text-center">No budgets set up yet, or data is loading.</p>
+    </ng-template>
+  </div>
+</div>

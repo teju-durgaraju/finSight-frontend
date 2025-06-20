@@ -1,5 +1,5 @@
 import { Routes } from "@angular/router";
-import { DashboardComponent } from "./components/dashboard/dashboard";
+// DashboardComponent import removed
 import { FinancialSummaryComponent } from "./components/financial-summary/financial-summary";
 import { BudgetManagementComponent } from "./components/budget-management/budget-management";
 import { GoalSettingsComponent } from "./components/goal-settings/goal-settings";
@@ -12,7 +12,11 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
-  { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
+  {
+    path: 'dashboard',
+    loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
+    canActivate: [authGuard]
+  },
   { path: "transactions", component: FinancialSummaryComponent, canActivate: [authGuard] },
   { path: "transactions/new", component: TransactionFormComponent, canActivate: [authGuard] },
   { path: "transactions/edit/:id", component: TransactionFormComponent, canActivate: [authGuard] },

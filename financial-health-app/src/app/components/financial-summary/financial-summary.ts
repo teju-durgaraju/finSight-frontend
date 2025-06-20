@@ -25,11 +25,11 @@ export class FinancialSummaryComponent implements OnInit {
     this.router.navigate(['/transactions/new']);
   }
 
-  editTransaction(id: string): void {
+  editTransaction(id: number): void {
     this.router.navigate(['/transactions/edit', id]);
   }
 
-  deleteTransaction(id: string): void {
+  deleteTransaction(id: number): void {
     if (confirm('Are you sure you want to delete this transaction?')) {
       this.transactionService.deleteTransaction(id).subscribe(success => {
         if (success) {

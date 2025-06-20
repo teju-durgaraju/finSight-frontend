@@ -1,0 +1,40 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0"><app-lucide-icon name="activity" class="me-2"></app-lucide-icon>Financial Summary</h5>
+  </div>
+  <div class="card-body">
+    <div *ngIf="summary; else loadingSummary">
+      <div class="row text-center">
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title text-success"><app-lucide-icon name="arrow-up-circle" class="me-1"></app-lucide-icon>Total Income</h6>
+              <p class="card-text fs-4 fw-bold">{{ summary.totalIncome | currency:'USD':'symbol':'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title text-danger"><app-lucide-icon name="arrow-down-circle" class="me-1"></app-lucide-icon>Total Expenses</h6>
+              <p class="card-text fs-4 fw-bold">{{ summary.totalExpenses | currency:'USD':'symbol':'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title text-info"><app-lucide-icon name="target" class="me-1"></app-lucide-icon>Net Savings</h6>
+              <p class="card-text fs-4 fw-bold" [ngClass]="summary.netSavings >= 0 ? 'text-success' : 'text-danger'">
+                {{ summary.netSavings | currency:'USD':'symbol':'1.2-2' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #loadingSummary>
+      <p class="text-center">Loading summary...</p>
+    </ng-template>
+  </div>
+</div>

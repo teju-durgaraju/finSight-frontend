@@ -1,0 +1,51 @@
+<div class="container-fluid p-4">
+  <h2 class="mb-4">Dashboard</h2>
+
+  <div class="row mb-4">
+    <div class="col">
+      <app-quick-actions></app-quick-actions>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col">
+      <app-financial-summary-card [summary]="financialSummary$ | async"></app-financial-summary-card>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col">
+      <app-budget-overview [budgets]="budgets$ | async"></app-budget-overview>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          Expense Breakdown by Category
+        </div>
+        <div class="card-body">
+          <ngx-charts-bar-vertical
+            *ngIf="sampleChartData.length > 0 && !(sampleChartData.length === 1 && (sampleChartData[0].name === 'No Expenses' || sampleChartData[0].name === 'No Data'))"
+            [view]="view"
+            [scheme]="colorScheme"
+            [results]="sampleChartData"
+            [gradient]="gradient"
+            [xAxis]="showXAxis"
+            [yAxis]="showYAxis"
+            [legend]="showLegend"
+            [showXAxisLabel]="showXAxisLabel"
+            [showYAxisLabel]="showYAxisLabel"
+            [xAxisLabel]="xAxisLabel"
+            [yAxisLabel]="yAxisLabel">
+          </ngx-charts-bar-vertical>
+          <p *ngIf="sampleChartData.length === 0 || (sampleChartData.length === 1 && (sampleChartData[0].name === 'No Expenses' || sampleChartData[0].name === 'No Data'))">
+            No expense data available to display chart.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

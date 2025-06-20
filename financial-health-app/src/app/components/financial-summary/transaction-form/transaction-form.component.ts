@@ -16,7 +16,7 @@ import { SharedModule } from '../../../shared/shared.module';
 export class TransactionFormComponent implements OnInit {
   transactionForm: FormGroup;
   isEditMode = false;
-  transactionId: string | null = null;
+  transactionId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -34,7 +34,8 @@ export class TransactionFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.transactionId = this.route.snapshot.paramMap.get('id');
+    const idParam = this.route.snapshot.paramMap.get('id');
+    this.transactionId = idParam ? +idParam : null;
     if (this.transactionId) {
       this.isEditMode = true;
       this.transactionService.getTransactionById(this.transactionId).subscribe(transaction => {

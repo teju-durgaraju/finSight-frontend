@@ -1,0 +1,16 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-secondary text-white">
+     <h5 class="mb-0"><app-lucide-icon name="zap" class="me-2"></app-lucide-icon>Quick Actions</h5>
+  </div>
+  <div class="card-body text-center">
+    <button type="button" class="btn btn-primary me-2 mb-2" (click)="navigateToAddTransaction()">
+      <app-lucide-icon name="plus-circle" class="me-1"></app-lucide-icon> Add Transaction
+    </button>
+    <button type="button" class="btn btn-info me-2 mb-2" (click)="navigateToSetBudget()">
+      <app-lucide-icon name="settings-2" class="me-1"></app-lucide-icon> Set Budget
+    </button>
+    <button type="button" class="btn btn-success mb-2" (click)="navigateToViewReports()">
+      <app-lucide-icon name="bar-chart-2" class="me-1"></app-lucide-icon> View Reports
+    </button>
+  </div>
+</div>
