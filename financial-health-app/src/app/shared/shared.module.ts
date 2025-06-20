@@ -1,27 +1,50 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Added FormsModule, ReactiveFormsModule
+
+// Lucide Icons - already configured from previous step
+import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar } from 'lucide-angular'; // Added UserPlus
+
+// Components
 import { LucideIconComponent } from './components/lucide-icon/lucide-icon.component';
-// Import all icons you intend to use with LucideAngularModule.pick() or make available globally
-import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, List, Edit, Trash2, BarChart2, PieChart, Target, PlusCircle, Activity } from 'lucide-angular';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { PaginationComponent } from './components/pagination/pagination.component';
+import { FilterBarComponent } from './components/filter-bar/filter-bar.component';
+
+// Directives placeholder (no actual directives generated yet)
+// import { ExampleDirective } from './directives/example.directive';
+
+// Pipes placeholder (no actual pipes generated yet)
+// import { ExamplePipe } from './pipes/example.pipe';
 
 @NgModule({
   declarations: [
-    LucideIconComponent
+    LucideIconComponent,
+    LoadingSpinnerComponent,
+    PaginationComponent,
+    FilterBarComponent,
+    // ExampleDirective,
+    // ExamplePipe
   ],
   imports: [
     CommonModule,
-    // It's generally recommended to use .pick() only once, ideally in the root (AppModule or app.config.ts for standalone).
-    // If icons are provided globally via app.config.ts with provideLucideIcons,
-    // then SharedModule only needs to import LucideAngularModule if its components use the <lucide-icon> tag.
-    // And export LucideAngularModule if other modules that import SharedModule want to use <lucide-icon>.
-    // For this setup, let's assume app.config.ts handles global icon provision.
-    // SharedModule will import LucideAngularModule to enable <lucide-icon> in its template (LucideIconComponent's template)
-    // and export it for other modules.
-    LucideAngularModule
+    FormsModule, // For template-driven forms if used by shared components
+    ReactiveFormsModule, // For reactive forms if used by shared components (e.g. FilterBar)
+    LucideAngularModule.pick({ // Ensure all icons used by shared or exported components are here
+        Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar
+    })
   ],
   exports: [
+    CommonModule, // Export CommonModule for common directives like ngIf, ngFor
+    FormsModule,
+    ReactiveFormsModule,
     LucideIconComponent,
-    LucideAngularModule // Exporting this allows other modules importing SharedModule to use <lucide-icon>
+    LoadingSpinnerComponent,
+    PaginationComponent,
+    FilterBarComponent,
+    LucideAngularModule, // Also export LucideAngularModule if other modules need to use <lucide-icon> directly
+    // ExampleDirective,
+    // ExamplePipe
   ]
 })
 export class SharedModule { }

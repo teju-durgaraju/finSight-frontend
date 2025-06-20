@@ -1,1 +1,46 @@
-<p>header works!</p>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <app-lucide-icon name="dollar-sign" class="me-2"></app-lucide-icon>
+      FinSight
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <ng-container *ngIf="isLoggedIn$ | async; else loggedOutMenu">
+          <!-- <li class="nav-item" *ngIf="username">
+            <a class="nav-link" routerLink="/profile">{{ username }}</a>
+          </li> -->
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/transactions">Transactions</a>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-link nav-link" (click)="logout()">
+              <app-lucide-icon name="log-out" class="me-1" size="18"></app-lucide-icon>
+              Logout
+            </button>
+          </li>
+        </ng-container>
+        <ng-template #loggedOutMenu>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/auth/login">
+              <app-lucide-icon name="log-in" class="me-1" size="18"></app-lucide-icon>
+              Login
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/auth/register">
+              <app-lucide-icon name="user-plus" class="me-1" size="18"></app-lucide-icon>
+              Register
+            </a>
+          </li>
+        </ng-template>
+      </ul>
+    </div>
+  </div>
+</nav>
