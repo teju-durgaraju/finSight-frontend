@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h3 class="mb-0">{{ isEditMode ? 'Edit' : 'Create' }} Financial Goal</h3>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="goalForm" (ngSubmit)="onSubmit()">
+        <!-- Name -->
+        <div class="mb-3">
+          <label for="name" class="form-label">Goal Name:</label>
+          <input type="text" id="name" class="form-control" formControlName="name"
+                 [ngClass]="{ 'is-invalid': f['name'].touched && f['name'].invalid }">
+          <div *ngIf="f['name'].touched && f['name'].errors?.['required']" class="invalid-feedback">
+            Goal name is required.
+          </div>
+        </div>
+
+        <!-- Description (Textarea) -->
+        <div class="mb-3">
+          <label for="description" class="form-label">Description (Optional):</label>
+          <textarea id="description" class="form-control" formControlName="description" rows="3"></textarea>
+        </div>
+
+        <!-- Target Amount -->
+        <div class="mb-3">
+          <label for="targetAmount" class="form-label">Target Amount:</label>
+          <input type="number" id="targetAmount" class="form-control" formControlName="targetAmount" placeholder="0.00"
+                 [ngClass]="{ 'is-invalid': f['targetAmount'].touched && f['targetAmount'].invalid }">
+          <div *ngIf="f['targetAmount'].touched && f['targetAmount'].invalid" class="invalid-feedback">
+            <span *ngIf="f['targetAmount'].errors?.['required']">Target amount is required.</span>
+            <span *ngIf="f['targetAmount'].errors?.['min']">Amount must be greater than 0.01.</span>
+            <span *ngIf="f['targetAmount'].errors?.['pattern']">Amount must be a valid number (e.g., 1000.00).</span>
+          </div>
+        </div>
+
+        <!-- Current Amount -->
+        <div class="mb-3">
+          <label for="currentAmount" class="form-label">Current Amount Saved (Optional):</label>
+          <input type="number" id="currentAmount" class="form-control" formControlName="currentAmount" placeholder="0.00"
+                 [ngClass]="{ 'is-invalid': f['currentAmount'].touched && f['currentAmount'].invalid }">
+          <div *ngIf="f['currentAmount'].touched && f['currentAmount'].invalid" class="invalid-feedback">
+            <span *ngIf="f['currentAmount'].errors?.['min']">Amount cannot be negative.</span>
+            <span *ngIf="f['currentAmount'].errors?.['pattern']">Amount must be a valid number.</span>
+          </div>
+        </div>
+
+        <!-- Target Date -->
+        <div class="mb-3">
+          <label for="targetDate" class="form-label">Target Date:</label>
+          <input type="date" id="targetDate" class="form-control" formControlName="targetDate"
+                 [ngClass]="{ 'is-invalid': f['targetDate'].touched && f['targetDate'].invalid }">
+          <div *ngIf="f['targetDate'].touched && f['targetDate'].errors?.['required']" class="invalid-feedback">
+            Target date is required.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+          <button type="button" class="btn btn-outline-secondary me-2" routerLink="/goals">
+            <app-lucide-icon name="x" class="me-1" size="18"></app-lucide-icon>Cancel
+          </button>
+          <button type="submit" class="btn btn-primary d-flex align-items-center" [disabled]="!goalForm.valid">
+            <app-lucide-icon name="save" class="me-1" size="18"></app-lucide-icon>
+            {{ isEditMode ? 'Update' : 'Save' }} Goal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

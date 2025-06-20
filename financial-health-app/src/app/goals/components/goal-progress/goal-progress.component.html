@@ -1,0 +1,25 @@
+<div *ngIf="goal" class="goal-progress">
+  <div class="d-flex justify-content-between small mb-1">
+    <span>{{ (goal.currentAmount || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+    <span>{{ goal.targetAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+  </div>
+  <div class="progress" style="height: 12px;"> <!-- Slightly taller for goals -->
+    <div
+      class="progress-bar"
+      role="progressbar"
+      [style.width.%]="progressPercentage > 100 ? 100 : progressPercentage" <!-- Visual cap at 100% -->
+      [ngClass]="progressBarClass"
+      [attr.aria-valuenow]="progressPercentage"
+      aria-valuemin="0"
+      aria-valuemax="100">
+      <!-- {{ progressPercentage }}% -->
+    </div>
+  </div>
+  <div class="text-end small mt-1" [ngClass]="{'fw-bold text-success': progressPercentage >= 100}">
+    {{ progressPercentage }}% Achieved
+    <app-lucide-icon *ngIf="progressPercentage >= 100" name="check-circle-2" class="ms-1 text-success" size="14"></app-lucide-icon>
+  </div>
+</div>
+<div *ngIf="!goal">
+  <small class="text-muted">Goal progress data not available.</small>
+</div>

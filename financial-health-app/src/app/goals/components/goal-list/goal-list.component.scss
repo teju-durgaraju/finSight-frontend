@@ -1,0 +1,9 @@
+/* Styles for GoalListComponent */
+.card-header h5 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-body {
+  flex-grow: 1; /* Ensure card body takes up space to push progress to bottom */
+}

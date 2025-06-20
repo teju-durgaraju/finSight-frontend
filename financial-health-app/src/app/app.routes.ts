@@ -1,6 +1,5 @@
 import { Routes } from "@angular/router";
-// Removed: import { BudgetManagementComponent } from "./components/budget-management/budget-management.component";
-import { GoalSettingsComponent } from "./components/goal-settings/goal-settings.component";
+// Removed: import { GoalSettingsComponent } from "./components/goal-settings/goal-settings.component";
 import { ReportsComponent } from "./features/reports.component";
 import { authGuard } from './core/guards/auth.guard';
 
@@ -24,7 +23,11 @@ export const routes: Routes = [
     loadChildren: () => import('./budgets/budgets.module').then(m => m.BudgetModule),
     canActivate: [authGuard]
   },
-  { path: "goals", component: GoalSettingsComponent, canActivate: [authGuard] },
+  {
+    path: 'goals',
+    loadChildren: () => import('./goals/goals.module').then(m => m.GoalsModule),
+    canActivate: [authGuard]
+  },
   { path: "reports", component: ReportsComponent, canActivate: [authGuard] },
   { path: "login", redirectTo: "/auth/login", pathMatch: "full" },
   { path: "registration", redirectTo: "/auth/register", pathMatch: "full" },
