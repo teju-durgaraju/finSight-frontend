@@ -1,8 +1,11 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Transactions</h3>
-    <button class="btn btn-primary" (click)="addTransaction()">Add Transaction</button>
+    <button class="btn btn-primary d-flex align-items-center" (click)="addTransaction()">
+      <app-lucide-icon name="plus-circle" class="me-2"></app-lucide-icon> Add Transaction
+    </button>
   </div>
+
   <table class="table table-striped">
     <thead>
       <tr>
@@ -15,18 +18,24 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let transaction of transactions">
+      <tr *ngFor="let transaction of transactions$ | async">
         <td>{{ transaction.date | date: 'shortDate' }}</td>
         <td>{{ transaction.description }}</td>
         <td>{{ transaction.amount | currency }}</td>
-        <td>{{ transaction.type }}</td>
+        <td [ngClass]="{'text-success': transaction.type === 'income', 'text-danger': transaction.type === 'expense'}">
+          {{ transaction.type | titlecase }}
+        </td>
         <td>{{ transaction.category }}</td>
         <td>
-          <button class="btn btn-sm btn-info me-2">Edit</button>
-          <button class="btn btn-sm btn-danger">Delete</button>
+          <button class="btn btn-sm btn-outline-primary me-2" (click)="editTransaction(transaction.id)">
+            <app-lucide-icon name="edit" size="16"></app-lucide-icon>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="deleteTransaction(transaction.id)">
+            <app-lucide-icon name="trash-2" size="16"></app-lucide-icon>
+          </button>
         </td>
       </tr>
-      <tr *ngIf="transactions.length === 0">
+      <tr *ngIf="!(transactions$ | async)?.length">
         <td colspan="6" class="text-center">No transactions found.</td>
       </tr>
     </tbody>
