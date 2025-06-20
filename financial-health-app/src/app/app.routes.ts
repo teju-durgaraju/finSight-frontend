@@ -1,9 +1,6 @@
 import { Routes } from "@angular/router";
-// Removed: import { FinancialSummaryComponent } from "./components/financial-summary/financial-summary"; // This was refactored to TransactionListComponent
-// Removed: import { TransactionFormComponent } from "./components/financial-summary/transaction-form/transaction-form.component"; // This was moved
-// DashboardComponent import was removed when DashboardModule was created
-import { BudgetManagementComponent } from "./components/budget-management/budget-management";
-import { GoalSettingsComponent } from "./components/goal-settings/goal-settings";
+// Removed: import { BudgetManagementComponent } from "./components/budget-management/budget-management.component";
+import { GoalSettingsComponent } from "./components/goal-settings/goal-settings.component";
 import { ReportsComponent } from "./features/reports.component";
 import { authGuard } from './core/guards/auth.guard';
 
@@ -22,7 +19,11 @@ export const routes: Routes = [
     loadChildren: () => import('./transactions/transactions.module').then(m => m.TransactionsModule),
     canActivate: [authGuard]
   },
-  { path: "budgets", component: BudgetManagementComponent, canActivate: [authGuard] },
+  {
+    path: 'budgets',
+    loadChildren: () => import('./budgets/budgets.module').then(m => m.BudgetModule),
+    canActivate: [authGuard]
+  },
   { path: "goals", component: GoalSettingsComponent, canActivate: [authGuard] },
   { path: "reports", component: ReportsComponent, canActivate: [authGuard] },
   { path: "login", redirectTo: "/auth/login", pathMatch: "full" },

@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs'; // 'of' might be needed if getCategories is kept or similar mocks
 import { map, catchError, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ErrorHandlingService } from './error-handling.service';
 import { Budget } from '../../models/budget.model';
 import { BudgetResponseDto } from '../../models/dto/budget.response.dto';
 import { BudgetRequestDto } from '../../models/dto/budget.request.dto';
+import { HttpParams } from '@angular/common/http'; // Added HttpParams import
 
 @Injectable({
   providedIn: 'root'
@@ -44,10 +45,15 @@ export class BudgetService {
     };
   }
 
-  public getBudgets(): Observable<Budget[]> {
-    return this.apiService.get('/v1/budgets').pipe(
+  public getBudgets(filters?: { month?: string }): Observable<Budget[]> {
+    let apiParams = new HttpParams(); // Use HttpParams
+    if (filters?.month && filters.month.trim() !== '') {
+      apiParams = apiParams.set('month', filters.month); // Use .set() for HttpParams
+    }
+
+    return this.apiService.get('/v1/budgets', apiParams).pipe(
       map((dtos: BudgetResponseDto[]) => {
-        const models = dtos.map(dto => this.mapDtoToModel(dto)); // Corrected 'this' context
+        const models = dtos.map(dto => this.mapDtoToModel(dto));
         this.budgetsSubject.next(models);
         return models;
       }),
@@ -60,7 +66,7 @@ export class BudgetService {
 
   public getBudgetById(id: number): Observable<Budget | undefined> {
     return this.apiService.get(\`/v1/budgets/\${id}\`).pipe(
-      map((dto: BudgetResponseDto | null) => dto ? this.mapDtoToModel(dto) : undefined), // Handle null DTO
+      map((dto: BudgetResponseDto | null) => dto ? this.mapDtoToModel(dto) : undefined),
       catchError(err => {
         this.errorHandlingService.showMessage(\`Failed to fetch budget \${id}.\`);
         return throwError(() => this.errorHandlingService.handleError(err));
@@ -87,7 +93,7 @@ export class BudgetService {
   public updateBudget(id: number, budgetData: Partial<Omit<Budget, 'id' | 'amountSpent'>>): Observable<Budget | undefined> {
     const requestDto = this.mapModelToRequestDto(budgetData);
     return this.apiService.put(\`/v1/budgets/\${id}\`, requestDto).pipe(
-      map((dto: BudgetResponseDto | null) => { // Handle null DTO
+      map((dto: BudgetResponseDto | null) => {
         if (!dto) return undefined;
         const updatedModel = this.mapDtoToModel(dto);
         const currentBudgets = this.budgetsSubject.value.map(b =>
@@ -117,7 +123,7 @@ export class BudgetService {
     );
   }
 
-  public refreshBudgets(): Observable<Budget[]> {
-    return this.getBudgets();
+  public refreshBudgets(filters?: { month?: string }): Observable<Budget[]> {
+    return this.getBudgets(filters);
   }
 }

@@ -1,0 +1,23 @@
+<div *ngIf="budget" class="category-budget-progress">
+  <div class="d-flex justify-content-between small mb-1">
+    <span>{{ (budget.amountSpent || 0) | currency:'USD':'symbol':'1.0-0' }}</span>
+    <span>{{ budget.amountAllocated | currency:'USD':'symbol':'1.0-0' }}</span>
+  </div>
+  <div class="progress" style="height: 10px;">
+    <div
+      class="progress-bar"
+      role="progressbar"
+      [style.width.%]="progressPercentage"
+      [ngClass]="progressBarClass"
+      [attr.aria-valuenow]="progressPercentage"
+      aria-valuemin="0"
+      aria-valuemax="100">
+    </div>
+  </div>
+  <div class="text-end small mt-1">
+    {{ progressPercentage }}% Spent
+  </div>
+</div>
+<div *ngIf="!budget">
+  <small class="text-muted">Budget data not available.</small>
+</div>

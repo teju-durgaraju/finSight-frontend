@@ -1,0 +1,55 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Budgets</h3>
+    <button class="btn btn-primary d-flex align-items-center" (click)="navigateToAddBudget()">
+      <app-lucide-icon name="plus-circle" class="me-2"></app-lucide-icon> Add New Budget
+    </button>
+  </div>
+
+  <div *ngIf="budgets$ | async as budgets; else loading">
+    <div *ngIf="budgets.length > 0; else noBudgets" class="row">
+      <div *ngFor="let budget of budgets" class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-primary"><app-lucide-icon name="target" class="me-2"></app-lucide-icon>{{ budget.category }}</h5>
+            <div>
+              <button class="btn btn-sm btn-outline-secondary me-2" (click)="navigateToEditBudget(budget.id)" title="Edit Budget">
+                <app-lucide-icon name="edit-2" size="16"></app-lucide-icon>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" (click)="deleteBudget(budget.id)" title="Delete Budget">
+                <app-lucide-icon name="trash-2" size="16"></app-lucide-icon>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="card-text">
+              <strong>Allocated:</strong> {{ budget.amountAllocated | currency:'USD':'symbol' }}
+            </p>
+            <p class="card-text" *ngIf="budget.amountSpent !== undefined">
+              <strong>Spent:</strong> {{ budget.amountSpent | currency:'USD':'symbol' }}
+            </p>
+            <p class="card-text">
+              <strong>Period:</strong> {{ budget.startDate | date:'MMM yyyy' }} - {{ budget.endDate | date:'MMM yyyy' }}
+            </p>
+            <!-- Placeholder for CategoryBudgetProgressComponent -->
+            <div class="mt-2 placeholder-glow">
+               <span class="placeholder col-12" style="height: 20px;"></span>
+               <small class="text-muted">Budget progress bar placeholder</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #noBudgets>
+      <div class="alert alert-info text-center" role="alert">
+        No budgets found. Get started by adding a new budget!
+      </div>
+    </ng-template>
+  </div>
+  <ng-template #loading>
+    <div class="text-center p-5">
+      <app-loading-spinner></app-loading-spinner> <!-- Assuming app-loading-spinner is available via SharedModule -->
+      <p>Loading budgets...</p>
+    </div>
+  </ng-template>
+</div>
