@@ -1,0 +1,53 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Transactions</h3>
+    <button class="btn btn-primary d-flex align-items-center" (click)="addTransaction()">
+      <app-lucide-icon name="plus-circle" class="me-2"></app-lucide-icon> Add Transaction
+    </button>
+  </div>
+
+  <app-filter-bar (filtersApplied)="onFiltersApplied($event)"></app-filter-bar>
+
+  <div class="table-responsive shadow-sm">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th (click)="sort('date')" role="button" class="text-nowrap">Date <app-lucide-icon *ngIf="currentSort.column === 'date'" [name]="currentSort.direction === 'asc' ? 'arrow-up' : 'arrow-down'" size="16"></app-lucide-icon></th>
+          <th (click)="sort('description')" role="button">Description <app-lucide-icon *ngIf="currentSort.column === 'description'" [name]="currentSort.direction === 'asc' ? 'arrow-up' : 'arrow-down'" size="16"></app-lucide-icon></th>
+          <th (click)="sort('amount')" role="button" class="text-end text-nowrap">Amount <app-lucide-icon *ngIf="currentSort.column === 'amount'" [name]="currentSort.direction === 'asc' ? 'arrow-up' : 'arrow-down'" size="16"></app-lucide-icon></th>
+          <th (click)="sort('type')" role="button" class="text-nowrap">Type <app-lucide-icon *ngIf="currentSort.column === 'type'" [name]="currentSort.direction === 'asc' ? 'arrow-up' : 'arrow-down'" size="16"></app-lucide-icon></th>
+          <th (click)="sort('category')" role="button">Category <app-lucide-icon *ngIf="currentSort.column === 'category'" [name]="currentSort.direction === 'asc' ? 'arrow-up' : 'arrow-down'" size="16"></app-lucide-icon></th>
+          <th class="text-center text-nowrap">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of (displayedTransactions$ | async)">
+          <td class="text-nowrap">{{ transaction.date | date: 'mediumDate' }}</td>
+          <td>{{ transaction.description }}</td>
+          <td class="text-end text-nowrap">{{ transaction.amount | currency }}</td>
+          <td class="text-nowrap" [ngClass]="{'text-success fw-bold': transaction.type === 'income', 'text-danger fw-bold': transaction.type === 'expense'}">
+            {{ transaction.type | titlecase }}
+          </td>
+          <td>{{ transaction.category }}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary me-2" (click)="editTransaction(transaction.id)" title="Edit">
+              <app-lucide-icon name="edit" size="16"></app-lucide-icon>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteTransaction(transaction.id)" title="Delete">
+              <app-lucide-icon name="trash-2" size="16"></app-lucide-icon>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!(displayedTransactions$ | async)?.length">
+          <td colspan="6" class="text-center fst-italic p-4">No transactions found. Try adjusting filters or adding new transactions.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalItems]="totalTransactions"
+    [itemsPerPage]="itemsPerPage"
+    (pageChange)="onPageChanged($event)">
+  </app-pagination>
+</div>

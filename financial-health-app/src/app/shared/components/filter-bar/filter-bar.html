@@ -1,1 +1,32 @@
-<p>filter-bar works!</p>
+<form [formGroup]="filterForm" (ngSubmit)="applyFilters()" class="row g-3 align-items-center p-3 mb-3 bg-light border rounded">
+  <div class="col-md-3 col-sm-6 mb-2">
+    <label for="filterType" class="form-label visually-hidden">Type:</label>
+    <select id="filterType" class="form-select form-select-sm" formControlName="type">
+      <option [ngValue]="null">All Types</option>
+      <option *ngFor="let type of transactionTypes" [value]="type">{{ type | titlecase }}</option>
+    </select>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-2">
+    <label for="filterCategory" class="form-label visually-hidden">Category:</label>
+    <select id="filterCategory" class="form-select form-select-sm" formControlName="category">
+      <option [ngValue]="null">All Categories</option>
+      <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+    </select>
+  </div>
+  <div class="col-md-2 col-sm-6 mb-2">
+    <label for="filterStartDate" class="form-label visually-hidden">Start Date:</label>
+    <input type="date" class="form-control form-control-sm" id="filterStartDate" formControlName="startDate" placeholder="Start Date">
+  </div>
+  <div class="col-md-2 col-sm-6 mb-2">
+    <label for="filterEndDate" class="form-label visually-hidden">End Date:</label>
+    <input type="date" class="form-control form-control-sm" id="filterEndDate" formControlName="endDate" placeholder="End Date">
+  </div>
+  <div class="col-md-2 col-sm-12 d-flex flex-column align-items-stretch">
+    <button type="submit" class="btn btn-primary btn-sm w-100 mb-2">
+        <app-lucide-icon name="filter" size="16" class="me-1"></app-lucide-icon>Apply
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm w-100" (click)="resetFilters()">
+        <app-lucide-icon name="rotate-cw" size="16" class="me-1"></app-lucide-icon>Reset
+    </button>
+  </div>
+</form>

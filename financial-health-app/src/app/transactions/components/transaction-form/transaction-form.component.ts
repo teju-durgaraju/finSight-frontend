@@ -1,22 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { Transaction } from '../../../models/transaction.model';
-import { SharedModule } from '../../../shared/shared.module';
 
 @Component({
   selector: 'app-transaction-form',
   templateUrl: './transaction-form.component.html',
-  styleUrls: ['./transaction-form.component.scss'], // .component.scss
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SharedModule]
+  styleUrls: ['./transaction-form.component.scss']
 })
 export class TransactionFormComponent implements OnInit {
   transactionForm: FormGroup;
   isEditMode = false;
   transactionId: number | null = null;
+  categories$: Observable<string[]> = of([]);
 
   constructor(
     private fb: FormBuilder,
@@ -27,33 +25,40 @@ export class TransactionFormComponent implements OnInit {
     this.transactionForm = this.fb.group({
       date: ['', Validators.required],
       description: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.pattern(/^[0-9]+(\.[0-9]{1,2})?$/)]],
+      amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/), Validators.min(0.01)]],
       type: ['expense', Validators.required],
       category: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
+    this.categories$ = this.transactionService.getCategories();
+
     const idParam = this.route.snapshot.paramMap.get('id');
     this.transactionId = idParam ? +idParam : null;
-    if (this.transactionId) {
+
+    // Check if transactionId is a valid number before proceeding
+    if (this.transactionId !== null && !isNaN(this.transactionId)) {
       this.isEditMode = true;
       this.transactionService.getTransactionById(this.transactionId).subscribe(transaction => {
         if (transaction) {
-          const formDate = transaction.date.toISOString().substring(0,10);
+          // Ensure date is formatted correctly for the date input (YYYY-MM-DD)
+          const formDate = transaction.date instanceof Date ? transaction.date.toISOString().substring(0,10) : transaction.date;
           this.transactionForm.patchValue({...transaction, date: formDate});
         } else {
           console.error('Transaction not found for editing');
           this.router.navigate(['/transactions']);
         }
       });
+    } else {
+      this.isEditMode = false; // Explicitly set to false if no valid ID
     }
   }
 
   onSubmit(): void {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.value;
-      if (this.isEditMode && this.transactionId) {
+      if (this.isEditMode && this.transactionId !== null) { // Ensure transactionId is not null for update
         this.transactionService.updateTransaction(this.transactionId, formValue).subscribe(() => {
           this.router.navigate(['/transactions']);
         });
@@ -62,6 +67,10 @@ export class TransactionFormComponent implements OnInit {
           this.router.navigate(['/transactions']);
         });
       }
+    } else {
+      this.transactionForm.markAllAsTouched();
     }
   }
+
+  get f() { return this.transactionForm.controls; }
 }

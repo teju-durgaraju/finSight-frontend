@@ -6,7 +6,16 @@ import { ErrorHandlingService } from './error-handling.service';
 import { Transaction } from '../../models/transaction.model';
 import { TransactionResponseDto } from '../../models/dto/transaction.response.dto';
 import { TransactionRequestDto } from '../../models/dto/transaction.request.dto';
-import { HttpParams } from '@angular/common/http'; // Import HttpParams
+import { HttpParams } from '@angular/common/http'; // Ensure HttpParams is imported
+
+// Interface for paginated API response (conceptual for future server-side pagination)
+// export interface PaginatedTransactionsResponse {
+//   items: TransactionResponseDto[];
+//   totalCount: number;
+//   page: number;
+//   limit: number;
+//   totalPages: number;
+// }
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +23,10 @@ import { HttpParams } from '@angular/common/http'; // Import HttpParams
 export class TransactionService {
   private transactionsSubject = new BehaviorSubject<Transaction[]>([]);
   public transactions$: Observable<Transaction[]> = this.transactionsSubject.asObservable();
+
+  // Conceptual: BehaviorSubject for total transaction count for server-side pagination
+  // private totalTransactionsSubject = new BehaviorSubject<number>(0);
+  // public totalTransactions$: Observable<number> = this.totalTransactionsSubject.asObservable();
 
   constructor(
     private apiService: ApiService,
@@ -33,10 +46,9 @@ export class TransactionService {
         if (model.date instanceof Date) {
             dateString = model.date.toISOString().split('T')[0];
         } else {
-            dateString = model.date as string; // Assume it's already a string in 'YYYY-MM-DD'
+            dateString = model.date as string;
         }
     }
-
     return {
       date: dateString,
       description: model.description || '',
@@ -46,17 +58,35 @@ export class TransactionService {
     };
   }
 
+  // GET /api/v1/transactions
+  // TODO: Implement server-side pagination and update API call accordingly.
+  // Conceptual signature for server-side pagination:
+  // public getTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }, page: number = 1, limit: number = 10): Observable<{transactions: Transaction[], totalCount: number}> {
   public getTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
     let httpParams = new HttpParams();
     if (filters?.type) httpParams = httpParams.set('type', filters.type);
     if (filters?.category) httpParams = httpParams.set('category', filters.category);
     if (filters?.startDate) httpParams = httpParams.set('startDate', filters.startDate);
     if (filters?.endDate) httpParams = httpParams.set('endDate', filters.endDate);
+    // Conceptual: Add pagination params for server-side pagination
+    // httpParams = httpParams.set('page', page.toString());
+    // httpParams = httpParams.set('limit', limit.toString());
 
+    // Conceptual: Adjust for PaginatedTransactionsResponse from API for server-side pagination
+    // return this.apiService.get('/v1/transactions', httpParams).pipe(
+    //   map((response: PaginatedTransactionsResponse) => {
+    //     const models = response.items.map(dto => this.mapDtoToModel(dto));
+    //     this.transactionsSubject.next(models);
+    //     this.totalTransactionsSubject.next(response.totalCount);
+    //     return { transactions: models, totalCount: response.totalCount };
+    //   }),
+    // Current implementation (fetches all, client-side pagination):
     return this.apiService.get('/v1/transactions', httpParams).pipe(
       map((dtos: TransactionResponseDto[]) => {
         const models = dtos.map(dto => this.mapDtoToModel(dto));
         this.transactionsSubject.next(models);
+        // For client-side pagination, total count is simply the length of the fetched array.
+        // this.totalTransactionsSubject.next(models.length);
         return models;
       }),
       catchError(err => {
@@ -81,8 +111,10 @@ export class TransactionService {
     return this.apiService.post('/v1/transactions', requestDto).pipe(
       map((dto: TransactionResponseDto) => {
         const newModel = this.mapDtoToModel(dto);
+        // Optimistically update local cache
         const currentTransactions = this.transactionsSubject.value;
         this.transactionsSubject.next([...currentTransactions, newModel]);
+        // this.totalTransactionsSubject.next(this.transactionsSubject.value.length); // Update if client-side total
         return newModel;
       }),
       catchError(err => {
@@ -116,6 +148,7 @@ export class TransactionService {
       map(() => {
         const currentTransactions = this.transactionsSubject.value.filter(t => t.id !== id);
         this.transactionsSubject.next(currentTransactions);
+        // this.totalTransactionsSubject.next(this.transactionsSubject.value.length); // Update if client-side total
         return true;
       }),
       catchError(err => {
@@ -126,6 +159,25 @@ export class TransactionService {
   }
 
   public refreshTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
+    // This will re-trigger the getTransactions call with current/new filters
+    // and update the BehaviorSubjects, causing subscribed components to update.
     return this.getTransactions(filters);
+  }
+
+  // Method to get categories
+  public getCategories(): Observable<string[]> {
+    // TODO: Replace with API call to GET /api/v1/categories or similar endpoint
+    // For now, using a fixed list.
+    const fixedCategories = ['Food', 'Transport', 'Salary', 'Utilities', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
+    // Conceptual example for deriving from existing transactions (if API for categories is not available):
+    // return this.transactions$.pipe(
+    //   map(transactions => {
+    //     if (!transactions || transactions.length === 0) return fixedCategories; // Fallback
+    //     const categories = new Set(transactions.map(t => t.category));
+    //     const uniqueCategories = Array.from(categories);
+    //     return uniqueCategories.length > 0 ? uniqueCategories : fixedCategories;
+    //   })
+    // );
+    return of(fixedCategories);
   }
 }
