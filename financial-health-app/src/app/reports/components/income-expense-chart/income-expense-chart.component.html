@@ -1,0 +1,32 @@
+<div class="card shadow-sm h-100">
+  <div class="card-header">
+    Income vs. Expenses (Last 6 Months)
+  </div>
+  <div class="card-body d-flex flex-column justify-content-center align-items-center">
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <div *ngIf="!isLoading && (incomeExpenseData$ | async) as data" class="chart-container w-100 h-100">
+      <div *ngIf="data.length > 0; else noData" class="w-100 h-100">
+        <ngx-charts-bar-vertical-grouped
+          [view]="view"
+          [scheme]="colorScheme"
+          [results]="data"
+          [xAxis]="showXAxis"
+          [yAxis]="showYAxis"
+          [legend]="showLegend"
+          [legendTitle]="legendTitle"
+          [legendPosition]="legendPosition"
+          [showXAxisLabel]="showXAxisLabel"
+          [showYAxisLabel]="showYAxisLabel"
+          [xAxisLabel]="xAxisLabel"
+          [yAxisLabel]="yAxisLabel"
+          [yAxisTickFormatting]="yAxisTickFormattingFn"
+          [groupPadding]="16">
+        </ngx-charts-bar-vertical-grouped>
+      </div>
+      <ng-template #noData>
+        <p class="text-center fst-italic p-3">No transaction data available for the selected period to display income vs. expenses.</p>
+      </ng-template>
+    </div>
+  </div>
+</div>

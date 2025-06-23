@@ -24,7 +24,7 @@ export class SpendingTrendsChartComponent implements OnInit {
   spendingData$: Observable<ChartSeries[]> = of([]);
 
   // Chart options
-  view: [number, number] = [700, 350];
+  // view: [number, number] = [700, 350]; // Default view size, commented out for responsiveness
   legend: boolean = true;
   showXAxisLabel: boolean = true;
   showYAxisLabel: boolean = true;

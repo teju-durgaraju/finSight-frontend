@@ -1,0 +1,25 @@
+<div class="card shadow-sm h-100">
+  <div class="card-header">
+    Spending Breakdown by Category (Last 30 Days)
+  </div>
+  <div class="card-body d-flex flex-column justify-content-center align-items-center">
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <div *ngIf="!isLoading && (categorySpendingData$ | async) as data" class="chart-container w-100 h-100">
+      <div *ngIf="data.length > 0; else noData" class="w-100 h-100">
+        <ngx-charts-advanced-pie-chart
+          [view]="view"
+          [scheme]="colorScheme"
+          [results]="data"
+          [gradient]="gradient"
+          [doughnut]="isDoughnut">
+        </ngx-charts-advanced-pie-chart>
+      </div>
+      <ng-template #noData>
+        <div class="text-center fst-italic p-3">
+          No expense data available for the selected period to display category breakdown.
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
