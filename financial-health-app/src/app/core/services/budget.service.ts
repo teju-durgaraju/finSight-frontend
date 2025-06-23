@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs'; // 'of' might be needed if getCategories is kept or similar mocks
-import { map, catchError, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ErrorHandlingService } from './error-handling.service';
 import { Budget } from '../../models/budget.model';
 import { BudgetResponseDto } from '../../models/dto/budget.response.dto';
 import { BudgetRequestDto } from '../../models/dto/budget.request.dto';
-import { HttpParams } from '@angular/common/http'; // Added HttpParams import
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -22,37 +22,51 @@ export class BudgetService {
 
   private mapDtoToModel(dto: BudgetResponseDto): Budget {
     return {
-      ...dto,
-      startDate: new Date(dto.startDate),
-      endDate: new Date(dto.endDate)
+      id: dto.id,
+      userId: dto.userId,
+      categoryName: dto.categoryName,
+      allocatedAmount: dto.allocatedAmount,
+      month: new Date(dto.month + '-01T00:00:00Z'), // Ensures Date is UTC, first of the month
+      totalMonthlyBudgetGoal: dto.totalMonthlyBudgetGoal,
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : undefined,
+      updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : undefined,
     };
   }
 
-  private mapModelToRequestDto(model: Partial<Omit<Budget, 'id' | 'amountSpent'>>): BudgetRequestDto {
-    let startDateString = '';
-    if (model.startDate) {
-        startDateString = model.startDate instanceof Date ? model.startDate.toISOString().split('T')[0] : model.startDate as string;
+  // Expects budgetData.categoryId to be present for requests.
+  // Expects budgetData.month to be a Date object from the form/model.
+  private mapModelToRequestDto(budgetData: Partial<Omit<Budget, 'id' | 'userId' | 'categoryName' | 'createdAt' | 'updatedAt'> & { categoryId: number }>): BudgetRequestDto {
+    let monthString = '';
+    if (budgetData.month) {
+        if (budgetData.month instanceof Date) {
+            const year = budgetData.month.getFullYear();
+            const month = (budgetData.month.getMonth() + 1).toString().padStart(2, '0');
+            monthString = \`\${year}-\${month}\`;
+        } else {
+            monthString = budgetData.month as string;
+        }
     }
-    let endDateString = '';
-    if (model.endDate) {
-        endDateString = model.endDate instanceof Date ? model.endDate.toISOString().split('T')[0] : model.endDate as string;
+
+    if (budgetData.categoryId === undefined || budgetData.categoryId === null) {
+      console.warn('mapModelToRequestDto (Budget): categoryId is missing. This is required for API request.');
     }
+
     return {
-      category: model.category || '',
-      amountAllocated: model.amountAllocated || 0,
-      startDate: startDateString,
-      endDate: endDateString
+      month: monthString,
+      categoryId: budgetData.categoryId || 0, // Fallback, should be validated by form
+      allocatedAmount: budgetData.allocatedAmount || 0,
+      totalMonthlyBudgetGoal: budgetData.totalMonthlyBudgetGoal
     };
   }
 
   public getBudgets(filters?: { month?: string }): Observable<Budget[]> {
-    let apiParams = new HttpParams(); // Use HttpParams
+    let apiParams = new HttpParams();
     if (filters?.month && filters.month.trim() !== '') {
-      apiParams = apiParams.set('month', filters.month); // Use .set() for HttpParams
+      apiParams = apiParams.set('month', filters.month);
     }
 
-    return this.apiService.get('/v1/budgets', apiParams).pipe(
-      map((dtos: BudgetResponseDto[]) => {
+    return this.apiService.get<BudgetResponseDto[]>('/v1/budgets', apiParams).pipe(
+      map(dtos => {
         const models = dtos.map(dto => this.mapDtoToModel(dto));
         this.budgetsSubject.next(models);
         return models;
@@ -65,8 +79,8 @@ export class BudgetService {
   }
 
   public getBudgetById(id: number): Observable<Budget | undefined> {
-    return this.apiService.get(\`/v1/budgets/\${id}\`).pipe(
-      map((dto: BudgetResponseDto | null) => dto ? this.mapDtoToModel(dto) : undefined),
+    return this.apiService.get<BudgetResponseDto>(\`/v1/budgets/\${id}\`).pipe(
+      map(dto => dto ? this.mapDtoToModel(dto) : undefined),
       catchError(err => {
         this.errorHandlingService.showMessage(\`Failed to fetch budget \${id}.\`);
         return throwError(() => this.errorHandlingService.handleError(err));
@@ -74,10 +88,10 @@ export class BudgetService {
     );
   }
 
-  public createBudget(budgetData: Partial<Omit<Budget, 'id' | 'amountSpent'>>): Observable<Budget> {
+  public createBudget(budgetData: Partial<Omit<Budget, 'id' | 'userId' | 'categoryName' | 'createdAt' | 'updatedAt'> & { categoryId: number }>): Observable<Budget> {
     const requestDto = this.mapModelToRequestDto(budgetData);
-    return this.apiService.post('/v1/budgets', requestDto).pipe(
-      map((dto: BudgetResponseDto) => {
+    return this.apiService.post<BudgetResponseDto>('/v1/budgets', requestDto).pipe(
+      map(dto => {
         const newModel = this.mapDtoToModel(dto);
         const currentBudgets = this.budgetsSubject.value;
         this.budgetsSubject.next([...currentBudgets, newModel]);
@@ -90,10 +104,10 @@ export class BudgetService {
     );
   }
 
-  public updateBudget(id: number, budgetData: Partial<Omit<Budget, 'id' | 'amountSpent'>>): Observable<Budget | undefined> {
+  public updateBudget(id: number, budgetData: Partial<Omit<Budget, 'id' | 'userId' | 'categoryName' | 'createdAt' | 'updatedAt'> & { categoryId: number }>): Observable<Budget | undefined> {
     const requestDto = this.mapModelToRequestDto(budgetData);
-    return this.apiService.put(\`/v1/budgets/\${id}\`, requestDto).pipe(
-      map((dto: BudgetResponseDto | null) => {
+    return this.apiService.put<BudgetResponseDto>(\`/v1/budgets/\${id}\`, requestDto).pipe(
+      map(dto => {
         if (!dto) return undefined;
         const updatedModel = this.mapDtoToModel(dto);
         const currentBudgets = this.budgetsSubject.value.map(b =>

@@ -1,8 +1,9 @@
-// Based on POST /api/v1/transactions and PUT /api/v1/transactions/{id}
+// src/app/models/dto/transaction.request.dto.ts
+// Based on OpenAPI spec
 export interface TransactionRequestDto {
-  date: string; // Expecting ISO date string from client
-  description: string;
-  amount: number;
-  type: 'income' | 'expense';
-  category: string;
+  type: 'INCOME' | 'EXPENSE'; // Matches enum from TransactionResponseDto spec (assuming consistency)
+  amount: number; // min: 0.01
+  categoryId: number; // Changed from category: string; ID of the category. format: int64
+  transactionDate: string; // Changed from date: string; format: date (e.g., "YYYY-MM-DD")
+  description?: string; // maxLength: 255, minLength: 0
 }

@@ -9,11 +9,11 @@
         <div class="mb-3">
           <label class="form-label d-block">Type:</label>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" id="typeExpense" value="expense" formControlName="type">
+            <input class="form-check-input" type="radio" id="typeExpense" value="EXPENSE" formControlName="type">
             <label class="form-check-label" for="typeExpense">Expense</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" id="typeIncome" value="income" formControlName="type">
+            <input class="form-check-input" type="radio" id="typeIncome" value="INCOME" formControlName="type">
             <label class="form-check-label" for="typeIncome">Income</label>
           </div>
           <div *ngIf="f['type'].touched && f['type'].errors?.['required']" class="invalid-feedback d-block">
@@ -23,7 +23,7 @@
 
         <!-- Date -->
         <div class="mb-3">
-          <label for="date" class="form-label">Date:</label>
+          <label for="date" class="form-label">Date:</label> <!-- Will rename to transactionDate to match model -->
           <input type="date" id="date" class="form-control" formControlName="date"
                  [ngClass]="{ 'is-invalid': f['date'].touched && f['date'].invalid }">
           <div *ngIf="f['date'].touched && f['date'].errors?.['required']" class="invalid-feedback">
@@ -55,11 +55,11 @@
 
         <!-- Category: Dropdown -->
         <div class="mb-3">
-          <label for="category" class="form-label">Category:</label>
+          <label for="category" class="form-label">Category:</label> <!-- Will be categoryId -->
           <select id="category" class="form-select" formControlName="category"
                   [ngClass]="{ 'is-invalid': f['category'].touched && f['category'].invalid }">
-            <option value="" disabled>Select a category</option>
-            <option *ngFor="let cat of categories$ | async" [value]="cat">{{ cat }}</option>
+            <option [ngValue]="null" disabled>Select a category</option> <!-- Changed value to null -->
+            <option *ngFor="let cat of categories$ | async" [value]="cat.id">{{ cat.name }}</option>
           </select>
           <div *ngIf="f['category'].touched && f['category'].errors?.['required']" class="invalid-feedback">
             Category is required.

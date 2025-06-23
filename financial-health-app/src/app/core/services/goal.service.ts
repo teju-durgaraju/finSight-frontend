@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ErrorHandlingService } from './error-handling.service';
 import { Goal } from '../../models/goal.model';
@@ -22,39 +22,41 @@ export class GoalService {
 
   private mapDtoToModel(dto: GoalResponseDto): Goal {
     return {
-      ...dto,
-      targetDate: new Date(dto.targetDate)
-      // createdAt: dto.createdAt ? new Date(dto.createdAt) : undefined,
-      // updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : undefined,
+      id: dto.id,
+      userId: dto.userId,
+      goalName: dto.goalName,
+      description: dto.description,
+      targetAmount: dto.targetAmount,
+      currentAmount: dto.currentAmount,
+      targetDate: new Date(dto.targetDate),
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : undefined,
+      updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : undefined,
     };
   }
 
-  private mapModelToRequestDto(model: Partial<Omit<Goal, 'id'>>): GoalRequestDto {
+  private mapModelToRequestDto(goalData: Partial<Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): GoalRequestDto {
     let targetDateString = '';
-    if (model.targetDate) {
-        if (model.targetDate instanceof Date) {
-            targetDateString = model.targetDate.toISOString().split('T')[0];
+    if (goalData.targetDate) {
+        if (goalData.targetDate instanceof Date) {
+            targetDateString = goalData.targetDate.toISOString().split('T')[0];
         } else {
-            targetDateString = model.targetDate as string;
+            targetDateString = goalData.targetDate as string;
         }
     }
 
     return {
-      name: model.name || '',
-      description: model.description,
-      targetAmount: model.targetAmount || 0,
-      currentAmount: model.currentAmount === undefined ? 0 : model.currentAmount,
+      goalName: goalData.goalName || '',
+      description: goalData.description,
+      targetAmount: goalData.targetAmount || 0,
+      currentAmount: goalData.currentAmount === undefined ? 0 : goalData.currentAmount,
       targetDate: targetDateString
     };
   }
 
-  public getGoals(filters?: any): Observable<Goal[]> {
-    let httpParams = new HttpParams();
-    // Example if filters were supported:
-    // if (filters?.status) httpParams = httpParams.set('status', filters.status);
-
-    return this.apiService.get('/v1/goals', httpParams).pipe(
-      map((dtos: GoalResponseDto[]) => {
+  public getGoals(): Observable<Goal[]> {
+    const httpParams = new HttpParams();
+    return this.apiService.get<GoalResponseDto[]>('/v1/goals', httpParams).pipe(
+      map(dtos => {
         const models = dtos.map(dto => this.mapDtoToModel(dto));
         this.goalsSubject.next(models);
         return models;
@@ -67,8 +69,8 @@ export class GoalService {
   }
 
   public getGoalById(id: number): Observable<Goal | undefined> {
-    return this.apiService.get(\`/v1/goals/\${id}\`).pipe(
-      map((dto: GoalResponseDto | null) => dto ? this.mapDtoToModel(dto) : undefined),
+    return this.apiService.get<GoalResponseDto>(\`/v1/goals/\${id}\`).pipe(
+      map(dto => dto ? this.mapDtoToModel(dto) : undefined),
       catchError(err => {
         this.errorHandlingService.showMessage(\`Failed to fetch goal \${id}.\`);
         return throwError(() => this.errorHandlingService.handleError(err));
@@ -76,10 +78,10 @@ export class GoalService {
     );
   }
 
-  public createGoal(goalData: Partial<Omit<Goal, 'id'>>): Observable<Goal> {
+  public createGoal(goalData: Partial<Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Observable<Goal> {
     const requestDto = this.mapModelToRequestDto(goalData);
-    return this.apiService.post('/v1/goals', requestDto).pipe(
-      map((dto: GoalResponseDto) => {
+    return this.apiService.post<GoalResponseDto>('/v1/goals', requestDto).pipe(
+      map(dto => {
         const newModel = this.mapDtoToModel(dto);
         const currentGoals = this.goalsSubject.value;
         this.goalsSubject.next([...currentGoals, newModel]);
@@ -92,11 +94,11 @@ export class GoalService {
     );
   }
 
-  public updateGoal(id: number, goalData: Partial<Omit<Goal, 'id'>>): Observable<Goal | undefined> {
+  public updateGoal(id: number, goalData: Partial<Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Observable<Goal | undefined> {
     const requestDto = this.mapModelToRequestDto(goalData);
-    return this.apiService.put(\`/v1/goals/\${id}\`, requestDto).pipe(
-      map((dto: GoalResponseDto | null) => {
-        if (!dto) return undefined;
+    return this.apiService.put<GoalResponseDto>(\`/v1/goals/\${id}\`, requestDto).pipe(
+      map(dto => {
+        if(!dto) return undefined;
         const updatedModel = this.mapDtoToModel(dto);
         const currentGoals = this.goalsSubject.value.map(g =>
           g.id === id ? updatedModel : g
@@ -125,7 +127,7 @@ export class GoalService {
     );
   }
 
-  public refreshGoals(filters?: any): Observable<Goal[]> {
-    return this.getGoals(filters);
+  public refreshGoals(): Observable<Goal[]> {
+    return this.getGoals();
   }
 }

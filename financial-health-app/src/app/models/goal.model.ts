@@ -1,12 +1,12 @@
 // src/app/models/goal.model.ts
 export interface Goal {
   id: number;
-  name: string;
+  userId?: number;
+  goalName: string; // Changed from name
   description?: string;
   targetAmount: number;
   currentAmount: number;
-  targetDate: Date;
-  // userId?: number;
-  // createdAt?: Date;
-  // updatedAt?: Date;
+  targetDate: Date; // Store as Date object after conversion
+  createdAt?: Date;
+  updatedAt?: Date;
 }

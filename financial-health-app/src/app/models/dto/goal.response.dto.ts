@@ -1,13 +1,13 @@
 // src/app/models/dto/goal.response.dto.ts
-// Based on GET /api/v1/goals and GET /api/v1/goals/{id}
+// Based on OpenAPI spec
 export interface GoalResponseDto {
-  id: number;
-  name: string;
+  id: number; // format: int64
+  userId?: number; // format: int64
+  goalName: string; // Changed from name
   description?: string;
   targetAmount: number;
   currentAmount: number;
-  targetDate: string; // ISO date string (e.g., "YYYY-MM-DD")
-  userId?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  targetDate: string; // format: date
+  createdAt?: string; // format: date-time
+  updatedAt?: string; // format: date-time
 }

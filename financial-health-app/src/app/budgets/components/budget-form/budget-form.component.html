@@ -5,18 +5,20 @@
     </div>
     <div class="card-body">
       <form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+        <!-- Category Dropdown -->
         <div class="mb-3">
           <label for="category" class="form-label">Category:</label>
           <select id="category" class="form-select" formControlName="category"
                   [ngClass]="{ 'is-invalid': f['category'].touched && f['category'].invalid }">
-            <option value="" disabled>Select a category</option>
-            <option *ngFor="let cat of categories$ | async" [value]="cat">{{ cat }}</option>
+            <option [ngValue]="null" disabled>Select a category</option> <!-- Changed value to null -->
+            <option *ngFor="let cat of categories$ | async" [value]="cat.id">{{ cat.name }}</option>
           </select>
           <div *ngIf="f['category'].touched && f['category'].errors?.['required']" class="invalid-feedback">
             Category is required.
           </div>
         </div>
 
+        <!-- Allocated Amount -->
         <div class="mb-3">
           <label for="amountAllocated" class="form-label">Allocated Amount:</label>
           <input type="number" id="amountAllocated" class="form-control" formControlName="amountAllocated" placeholder="0.00"
@@ -28,23 +30,18 @@
           </div>
         </div>
 
+        <!-- Month -->
         <div class="mb-3">
-          <label for="startDate" class="form-label">Start Date:</label>
-          <input type="date" id="startDate" class="form-control" formControlName="startDate"
-                 [ngClass]="{ 'is-invalid': f['startDate'].touched && f['startDate'].invalid }">
-          <div *ngIf="f['startDate'].touched && f['startDate'].errors?.['required']" class="invalid-feedback">
-            Start date is required.
+          <label for="month" class="form-label">Month:</label>
+          <input type="month" id="month" class="form-control" formControlName="month"
+                 [ngClass]="{ 'is-invalid': f['month'].touched && f['month'].invalid }">
+          <div *ngIf="f['month'].touched && f['month'].errors?.['required']" class="invalid-feedback">
+            Month is required (e.g., YYYY-MM).
           </div>
         </div>
 
-        <div class="mb-3">
-          <label for="endDate" class="form-label">End Date:</label>
-          <input type="date" id="endDate" class="form-control" formControlName="endDate"
-                 [ngClass]="{ 'is-invalid': f['endDate'].touched && f['endDate'].invalid }">
-          <div *ngIf="f['endDate'].touched && f['endDate'].errors?.['required']" class="invalid-feedback">
-            End date is required.
-          </div>
-        </div>
+        <!-- totalMonthlyBudgetGoal might be added here if it's user-editable -->
+        <!-- For now, assuming it's handled differently or not on this form -->
 
         <div class="d-flex justify-content-end mt-4">
           <button type="button" class="btn btn-outline-secondary me-2" routerLink="/budgets">

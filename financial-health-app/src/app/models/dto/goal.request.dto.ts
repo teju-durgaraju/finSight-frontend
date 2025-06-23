@@ -1,9 +1,9 @@
 // src/app/models/dto/goal.request.dto.ts
-// Based on POST /api/v1/goals and PUT /api/v1/goals/{id}
+// Based on OpenAPI spec
 export interface GoalRequestDto {
-  name: string;
-  description?: string;
-  targetAmount: number;
-  currentAmount?: number;
-  targetDate: string; // Expecting ISO date string from client
+  goalName: string; // Changed from name; maxLength: 255, minLength: 0
+  description?: string; // Optional
+  targetAmount: number; // min: 0.01
+  currentAmount?: number; // Optional, min: 0
+  targetDate: string; // format: date (e.g., "YYYY-MM-DD")
 }

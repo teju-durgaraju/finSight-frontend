@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs'; // 'of' is used by getCategories if it were here
 import { map, catchError, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ErrorHandlingService } from './error-handling.service';
@@ -8,25 +8,12 @@ import { TransactionResponseDto } from '../../models/dto/transaction.response.dt
 import { TransactionRequestDto } from '../../models/dto/transaction.request.dto';
 import { HttpParams } from '@angular/common/http'; // Ensure HttpParams is imported
 
-// Interface for paginated API response (conceptual for future server-side pagination)
-// export interface PaginatedTransactionsResponse {
-//   items: TransactionResponseDto[];
-//   totalCount: number;
-//   page: number;
-//   limit: number;
-//   totalPages: number;
-// }
-
 @Injectable({
   providedIn: 'root'
 })
 export class TransactionService {
   private transactionsSubject = new BehaviorSubject<Transaction[]>([]);
   public transactions$: Observable<Transaction[]> = this.transactionsSubject.asObservable();
-
-  // Conceptual: BehaviorSubject for total transaction count for server-side pagination
-  // private totalTransactionsSubject = new BehaviorSubject<number>(0);
-  // public totalTransactions$: Observable<number> = this.totalTransactionsSubject.asObservable();
 
   constructor(
     private apiService: ApiService,
@@ -35,58 +22,61 @@ export class TransactionService {
 
   private mapDtoToModel(dto: TransactionResponseDto): Transaction {
     return {
-      ...dto,
-      date: new Date(dto.date)
+      id: dto.id,
+      userId: dto.userId,
+      type: dto.type,
+      amount: dto.amount,
+      categoryName: dto.categoryName,
+      transactionDate: new Date(dto.transactionDate),
+      description: dto.description,
+      createdAt: dto.createdAt ? new Date(dto.createdAt) : undefined
     };
   }
 
-  private mapModelToRequestDto(model: Partial<Omit<Transaction, 'id'>>): TransactionRequestDto {
+  // Note: This now relies on 'transactionData' having 'categoryId' for requests.
+  // It also expects 'transactionDate' to be part of 'transactionData' if a date is involved.
+  private mapModelToRequestDto(transactionData: Partial<Transaction & { categoryId: number }>): TransactionRequestDto {
     let dateString = '';
-    if (model.date) {
-        if (model.date instanceof Date) {
-            dateString = model.date.toISOString().split('T')[0];
+    if (transactionData.transactionDate) {
+        if (transactionData.transactionDate instanceof Date) {
+            dateString = transactionData.transactionDate.toISOString().split('T')[0];
         } else {
-            dateString = model.date as string;
+            dateString = transactionData.transactionDate as string;
         }
     }
+
+    if (transactionData.categoryId === undefined || transactionData.categoryId === null) {
+      console.warn('mapModelToRequestDto: categoryId is missing. This is required for API request.');
+      // Potentially throw error or use a default if backend allows, though DTO implies it's required.
+    }
+
+    const typeValue = transactionData.type?.toUpperCase() as 'INCOME' | 'EXPENSE';
+    if (typeValue !== 'INCOME' && typeValue !== 'EXPENSE') {
+        console.warn('mapModelToRequestDto: type is invalid in transactionData. Defaulting to EXPENSE.');
+        // This default might not be appropriate; form validation should ensure correct type.
+    }
+
     return {
-      date: dateString,
-      description: model.description || '',
-      amount: model.amount || 0,
-      type: model.type || 'expense',
-      category: model.category || ''
+      transactionDate: dateString,
+      description: transactionData.description,
+      amount: transactionData.amount || 0,
+      type: typeValue || 'EXPENSE',
+      categoryId: transactionData.categoryId || 0 // Fallback to 0, DTO requires number. Backend should validate.
     };
   }
 
-  // GET /api/v1/transactions
-  // TODO: Implement server-side pagination and update API call accordingly.
-  // Conceptual signature for server-side pagination:
-  // public getTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }, page: number = 1, limit: number = 10): Observable<{transactions: Transaction[], totalCount: number}> {
-  public getTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
+  public getTransactions(filters?: { type?: 'INCOME' | 'EXPENSE'; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
     let httpParams = new HttpParams();
     if (filters?.type) httpParams = httpParams.set('type', filters.type);
+    // API spec implies filtering by category name (string) for GET, but uses categoryId (number) for POST/PUT.
     if (filters?.category) httpParams = httpParams.set('category', filters.category);
     if (filters?.startDate) httpParams = httpParams.set('startDate', filters.startDate);
     if (filters?.endDate) httpParams = httpParams.set('endDate', filters.endDate);
-    // Conceptual: Add pagination params for server-side pagination
-    // httpParams = httpParams.set('page', page.toString());
-    // httpParams = httpParams.set('limit', limit.toString());
 
-    // Conceptual: Adjust for PaginatedTransactionsResponse from API for server-side pagination
-    // return this.apiService.get('/v1/transactions', httpParams).pipe(
-    //   map((response: PaginatedTransactionsResponse) => {
-    //     const models = response.items.map(dto => this.mapDtoToModel(dto));
-    //     this.transactionsSubject.next(models);
-    //     this.totalTransactionsSubject.next(response.totalCount);
-    //     return { transactions: models, totalCount: response.totalCount };
-    //   }),
-    // Current implementation (fetches all, client-side pagination):
     return this.apiService.get('/v1/transactions', httpParams).pipe(
       map((dtos: TransactionResponseDto[]) => {
         const models = dtos.map(dto => this.mapDtoToModel(dto));
         this.transactionsSubject.next(models);
-        // For client-side pagination, total count is simply the length of the fetched array.
-        // this.totalTransactionsSubject.next(models.length);
         return models;
       }),
       catchError(err => {
@@ -97,7 +87,7 @@ export class TransactionService {
   }
 
   public getTransactionById(id: number): Observable<Transaction | undefined> {
-    return this.apiService.get(\`/v1/transactions/\${id}\`).pipe(
+    return this.apiService.get<TransactionResponseDto>(\`/v1/transactions/\${id}\`).pipe(
       map((dto: TransactionResponseDto | null) => dto ? this.mapDtoToModel(dto) : undefined),
       catchError(err => {
         this.errorHandlingService.showMessage(\`Failed to fetch transaction \${id}.\`);
@@ -106,15 +96,14 @@ export class TransactionService {
     );
   }
 
-  public addTransaction(transactionData: Partial<Omit<Transaction, 'id'>>): Observable<Transaction> {
+  // Input 'transactionData' should have 'categoryId' and other fields matching Transaction model structure (after user input)
+  public addTransaction(transactionData: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'categoryName' > & { categoryId: number }>): Observable<Transaction> {
     const requestDto = this.mapModelToRequestDto(transactionData);
-    return this.apiService.post('/v1/transactions', requestDto).pipe(
-      map((dto: TransactionResponseDto) => {
+    return this.apiService.post<TransactionResponseDto>('/v1/transactions', requestDto).pipe(
+      map(dto => {
         const newModel = this.mapDtoToModel(dto);
-        // Optimistically update local cache
         const currentTransactions = this.transactionsSubject.value;
         this.transactionsSubject.next([...currentTransactions, newModel]);
-        // this.totalTransactionsSubject.next(this.transactionsSubject.value.length); // Update if client-side total
         return newModel;
       }),
       catchError(err => {
@@ -124,10 +113,10 @@ export class TransactionService {
     );
   }
 
-  public updateTransaction(id: number, transactionData: Partial<Omit<Transaction, 'id'>>): Observable<Transaction | undefined> {
+  public updateTransaction(id: number, transactionData: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'categoryName'> & { categoryId: number }>): Observable<Transaction | undefined> {
     const requestDto = this.mapModelToRequestDto(transactionData);
-    return this.apiService.put(\`/v1/transactions/\${id}\`, requestDto).pipe(
-      map((dto: TransactionResponseDto | null) => {
+    return this.apiService.put<TransactionResponseDto>(\`/v1/transactions/\${id}\`, requestDto).pipe(
+      map(dto => {
         if (!dto) return undefined;
         const updatedModel = this.mapDtoToModel(dto);
         const currentTransactions = this.transactionsSubject.value.map(t =>
@@ -148,7 +137,6 @@ export class TransactionService {
       map(() => {
         const currentTransactions = this.transactionsSubject.value.filter(t => t.id !== id);
         this.transactionsSubject.next(currentTransactions);
-        // this.totalTransactionsSubject.next(this.transactionsSubject.value.length); // Update if client-side total
         return true;
       }),
       catchError(err => {
@@ -158,26 +146,9 @@ export class TransactionService {
     );
   }
 
-  public refreshTransactions(filters?: { type?: string; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
-    // This will re-trigger the getTransactions call with current/new filters
-    // and update the BehaviorSubjects, causing subscribed components to update.
+  public refreshTransactions(filters?: { type?: 'INCOME' | 'EXPENSE'; category?: string; startDate?: string; endDate?: string }): Observable<Transaction[]> {
     return this.getTransactions(filters);
   }
 
-  // Method to get categories
-  public getCategories(): Observable<string[]> {
-    // TODO: Replace with API call to GET /api/v1/categories or similar endpoint
-    // For now, using a fixed list.
-    const fixedCategories = ['Food', 'Transport', 'Salary', 'Utilities', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
-    // Conceptual example for deriving from existing transactions (if API for categories is not available):
-    // return this.transactions$.pipe(
-    //   map(transactions => {
-    //     if (!transactions || transactions.length === 0) return fixedCategories; // Fallback
-    //     const categories = new Set(transactions.map(t => t.category));
-    //     const uniqueCategories = Array.from(categories);
-    //     return uniqueCategories.length > 0 ? uniqueCategories : fixedCategories;
-    //   })
-    // );
-    return of(fixedCategories);
-  }
+  // getCategories() is removed. A dedicated CategoryService will be introduced later.
 }

@@ -1,7 +1,8 @@
-// Based on PUT /api/v1/budgets/{id} and potential POST /api/v1/budgets
+// src/app/models/dto/budget.request.dto.ts
+// Based on OpenAPI spec
 export interface BudgetRequestDto {
-  category: string;
-  amountAllocated: number;
-  startDate: string; // ISO date string
-  endDate: string; // ISO date string
+  categoryId: number; // format: int64
+  allocatedAmount: number; // min: 0
+  month: string; // pattern: "^\d{4}-(0[1-9]|1[0-2])$" (e.g., "YYYY-MM")
+  totalMonthlyBudgetGoal?: number; // min: 0, optional
 }
