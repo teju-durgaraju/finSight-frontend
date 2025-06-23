@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, switchMap, filter } from 'rxjs/operators';
 import { BudgetService } from '../../../core/services/budget.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../models/category.model';
@@ -35,40 +35,61 @@ export class BudgetFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Budgets are typically for expenses.
     this.categories$ = this.categoryService.getCategories('EXPENSE');
 
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditMode = true;
       this.budgetId = +idParam;
+
       if (this.budgetId !== null && !isNaN(this.budgetId)) {
-        this.budgetService.getBudgetById(this.budgetId).subscribe(budget => {
-          if (budget && budget.month) {
+        this.budgetService.getBudgetById(this.budgetId).pipe(
+          filter((budget): budget is Budget => { // Type guard
+            if (!budget) {
+              console.error('Budget not found for editing');
+              this.router.navigate(['/budgets']);
+              return false;
+            }
+            if (!budget.month) { // Budget model's month is Date
+              console.error('Budget month is missing for editing');
+              this.router.navigate(['/budgets']);
+              return false;
+            }
+            return true;
+          }),
+          switchMap(budget => {
+            // Categories for budgets are typically 'EXPENSE' type, already fetched.
+            return this.categories$.pipe(
+              take(1),
+              map(categories => ({ budget, categories }))
+            );
+          })
+        ).subscribe(result => {
+          // result could be null if filter above returned false, but type guard prevents that.
+          if (result && result.budget) {
+            const { budget, categories } = result;
             const formMonth = budget.month instanceof Date
-                              ? budget.month.toISOString().substring(0,7)
+                              ? budget.month.toISOString().substring(0,7) // YYYY-MM
                               : budget.month.toString();
 
-            this.categories$.pipe(take(1)).subscribe(categories => {
-              // Assuming Budget model now has categoryId (as per Step 8 of overall plan)
-              const selectedCategoryObj = categories.find(cat => cat.name === budget.categoryName);
-              const categoryIdToPatch = budget.categoryId || (selectedCategoryObj ? selectedCategoryObj.id : null);
+            // Use budget.categoryId if available (from Step 8 model update), else lookup by name
+            const categoryIdToPatch = budget.categoryId !== undefined
+                                      ? budget.categoryId
+                                      : (categories.find(cat => cat.name === budget.categoryName)?.id || null);
 
-              this.budgetForm.patchValue({
-                category: categoryIdToPatch, // This is categoryId
-                allocatedAmount: budget.allocatedAmount,
-                month: formMonth,
-                totalMonthlyBudgetGoal: budget.totalMonthlyBudgetGoal
-              });
+            this.budgetForm.patchValue({
+              category: categoryIdToPatch,
+              allocatedAmount: budget.allocatedAmount,
+              month: formMonth,
+              totalMonthlyBudgetGoal: budget.totalMonthlyBudgetGoal
             });
-          } else {
-            console.error('Budget not found or missing month for editing');
-            this.router.navigate(['/budgets']);
           }
         });
       } else {
         console.error('Invalid Budget ID for editing');
+        this.isEditMode = false;
         this.router.navigate(['/budgets']);
-        this.isEditMode = false; // Ensure isEditMode is false if ID is invalid
       }
     } else {
       this.isEditMode = false;
@@ -83,6 +104,8 @@ export class BudgetFormComponent implements OnInit {
         allocatedAmount: formValue.allocatedAmount,
         month: formValue.month,
         totalMonthlyBudgetGoal: formValue.totalMonthlyBudgetGoal
+        // Ensure this structure matches what BudgetService expects,
+        // particularly that `month` is a "YYYY-MM" string from the form.
       };
 
       if (this.isEditMode && this.budgetId !== null) {

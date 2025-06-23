@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, Subscription, BehaviorSubject } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, filter } from 'rxjs/operators';
 import { Transaction } from '../../../models/transaction.model';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { Router } from '@angular/router';
-import { TransactionFilters } from '../../../shared/components/filter-bar/filter-bar'; // Corrected path
+import { ModalService } from '../../../core/services/modal.service'; // Import ModalService
+import { TransactionFilters } from '../../../shared/components/filter-bar/filter-bar';
 
 export interface SortConfig {
   column: keyof Transaction | 'actions' | null;
@@ -28,15 +29,15 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   itemsPerPage: number = 10;
   totalTransactions: number = 0;
 
-  currentSort: SortConfig = { column: 'date', direction: 'desc' };
+  currentSort: SortConfig = { column: 'transactionDate', direction: 'desc' };
   currentFilters: TransactionFilters = {};
 
   constructor(
     private transactionService: TransactionService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService // Injected ModalService
   ) {
     this.transactionsRaw$ = this.transactionService.transactions$;
-    // Initialize displayedTransactions$ to apply client-side processing from the start
     this.displayedTransactions$ = this.transactionsRaw$.pipe(
       map(transactions => this.applySortAndPagination(transactions))
     );
@@ -68,18 +69,16 @@ export class TransactionListComponent implements OnInit, OnDestroy {
 
   applySortAndPagination(transactions: Transaction[]): Transaction[] {
     let processed = [...transactions];
-    // Apply Sorting (client-side)
     if (this.currentSort.column && this.currentSort.column !== 'actions' && this.currentSort.direction) {
       processed.sort((a, b) => {
-        const valA = a[this.currentSort.column!];
-        const valB = b[this.currentSort.column!];
+        const valA = a[this.currentSort.column as keyof Transaction];
+        const valB = b[this.currentSort.column as keyof Transaction];
         let comparison = 0;
         if (valA > valB) comparison = 1;
         else if (valA < valB) comparison = -1;
         return this.currentSort.direction === 'desc' ? comparison * -1 : comparison;
       });
     }
-    // Apply Pagination (client-side)
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     processed = processed.slice(startIndex, startIndex + this.itemsPerPage);
     return processed;
@@ -92,9 +91,6 @@ export class TransactionListComponent implements OnInit, OnDestroy {
 
   onPageChanged(page: number): void {
     this.currentPage = page;
-    // Trigger re-pipe of displayedTransactions$ by re-applying sort and pagination
-    // This is done by transactionsRaw$ emitting and displayedTransactions$ re-evaluating
-    // No, we need to re-apply the pipe if transactionsRaw$ hasn't changed but pagination has
     this.displayedTransactions$ = this.transactionsRaw$.pipe(
       map(transactions => this.applySortAndPagination(transactions))
     );
@@ -121,17 +117,28 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/transactions/edit', id]);
   }
 
-  deleteTransaction(id: number): void {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      this.transactionService.deleteTransaction(id).subscribe({
-        next: () => {
-          console.log('Transaction deleted successfully');
-          // The list updates via BehaviorSubject in service.
-          // If getTransactions() was used for total counts or server-side pagination, might need:
-          // this.loadTransactions();
-        },
-        error: (err) => console.error('Failed to delete transaction', err)
-      });
+  async deleteTransaction(id: number): Promise<void> { // Changed to async
+    try {
+      const confirmed = await this.modalService.confirm(
+        'Delete Transaction',
+        'Are you sure you want to delete this transaction?',
+        'Delete', // confirmText
+        'Cancel', // cancelText
+        'btn-danger', // confirmButtonClass
+        'btn-outline-secondary' // cancelButtonClass
+      );
+      if (confirmed) {
+        this.transactionService.deleteTransaction(id).subscribe({
+          next: () => {
+            console.log('Transaction deleted successfully');
+            // Optionally call loadTransactions() or rely on BehaviorSubject for list update
+          },
+          error: (err) => console.error('Failed to delete transaction', err)
+        });
+      }
+    } catch (error) {
+      // This block will be executed if modalService.confirm promise rejects (e.g. dismissed)
+      console.log('Delete transaction modal dismissed.');
     }
   }
 }

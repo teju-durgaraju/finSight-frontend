@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core'; // Added OnDestroy
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of, Subscription } from 'rxjs'; // Added Subscription
-import { take } from 'rxjs/operators';
+import { Observable, of, Subscription } from 'rxjs';
+import { take, switchMap, filter } from 'rxjs/operators';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../models/category.model';
@@ -18,7 +18,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   isEditMode = false;
   transactionId: number | null = null;
   categories$: Observable<Category[]> = of([]);
-  private typeChangeSubscription: Subscription | undefined;
+  private typeChangeSubscription?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -29,7 +29,7 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   ) {
     this.transactionForm = this.fb.group({
       type: ['EXPENSE', Validators.required],
-      transactionDate: ['', Validators.required], // Renamed from 'date'
+      transactionDate: ['', Validators.required], // Aligned with model/DTO
       description: ['', Validators.required],
       amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/), Validators.min(0.01)]],
       category: [null, Validators.required] // Stores categoryId
@@ -37,51 +37,72 @@ export class TransactionFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Update categories when transaction type changes
-    this.typeChangeSubscription = this.transactionForm.get('type')?.valueChanges.subscribe(typeValue => {
-      const typeForFilter = typeValue === 'INCOME' ? 'INCOME' : 'EXPENSE';
-      this.categories$ = this.categoryService.getCategories(typeForFilter);
+    const initialType = (this.transactionForm.get('type')?.value || 'EXPENSE') as 'INCOME' | 'EXPENSE';
+    this.categories$ = this.categoryService.getCategories(initialType);
+
+    this.typeChangeSubscription = this.transactionForm.get('type')?.valueChanges.subscribe((typeValue: 'INCOME' | 'EXPENSE') => {
+      this.categories$ = this.categoryService.getCategories(typeValue);
       this.transactionForm.get('category')?.setValue(null);
     });
-
-    // Initial category load based on default form type
-    const initialType = this.transactionForm.get('type')?.value === 'INCOME' ? 'INCOME' : 'EXPENSE';
-    this.categories$ = this.categoryService.getCategories(initialType);
 
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditMode = true;
       this.transactionId = +idParam;
+
       if (this.transactionId !== null && !isNaN(this.transactionId)) {
-        this.transactionService.getTransactionById(this.transactionId).subscribe(transaction => {
-          if (transaction && transaction.transactionDate) {
+        this.transactionService.getTransactionById(this.transactionId).pipe(
+          filter((transaction): transaction is Transaction => { // Type guard
+            if (!transaction) {
+              console.error('Transaction not found for editing');
+              this.router.navigate(['/transactions']);
+              return false;
+            }
+            if (!transaction.transactionDate) {
+              console.error('Transaction date is missing for editing');
+              this.router.navigate(['/transactions']);
+              return false;
+            }
+            return true;
+          }),
+          switchMap(transaction => {
+            const transactionType = transaction.type || 'EXPENSE';
+            if (this.transactionForm.get('type')?.value !== transactionType) {
+                 this.transactionForm.get('type')?.setValue(transactionType, { emitEvent: false });
+            }
+            return this.categoryService.getCategories(transactionType).pipe(
+              take(1),
+              map(categories => ({ transaction, categories }))
+            );
+          })
+        ).subscribe(result => {
+          // result could be null if filter above returned false, but type guard prevents that here.
+          // However, if switchMap doesn't emit due to an empty categories$ observable before take(1), result might not emit.
+          // It's safer to check result.
+          if (result && result.transaction) {
+            const { transaction, categories } = result;
             const formDate = transaction.transactionDate instanceof Date
                              ? transaction.transactionDate.toISOString().substring(0,10)
-                             : transaction.transactionDate.toString(); // Should be string from model if not Date (though model is Date)
+                             : transaction.transactionDate.toString();
 
-            this.categories$.pipe(take(1)).subscribe(categories => {
-              // transaction.categoryId should be populated if Step 8 (model update) ran correctly
-              const categoryIdToPatch = transaction.categoryId ||
-                                        categories.find(cat => cat.name === transaction.categoryName)?.id ||
-                                        null;
+            // Use transaction.categoryId if available (from Step 8 model update), else lookup by name
+            const categoryIdToPatch = transaction.categoryId !== undefined
+                                      ? transaction.categoryId
+                                      : (categories.find(cat => cat.name === transaction.categoryName)?.id || null);
 
-              this.transactionForm.patchValue({
-                type: transaction.type,
-                transactionDate: formDate, // Use new form control name
-                description: transaction.description,
-                amount: transaction.amount,
-                category: categoryIdToPatch // This is categoryId
-              });
+            this.transactionForm.patchValue({
+              type: transaction.type,
+              transactionDate: formDate,
+              description: transaction.description,
+              amount: transaction.amount,
+              category: categoryIdToPatch
             });
-          } else {
-            console.error('Transaction not found or missing date for editing');
-            this.router.navigate(['/transactions']);
           }
         });
       } else {
         console.error('Invalid Transaction ID for editing');
+        this.isEditMode = false;
         this.router.navigate(['/transactions']);
-        this.isEditMode = false; // Ensure isEditMode is false if ID is invalid
       }
     } else {
       this.isEditMode = false;

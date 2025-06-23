@@ -1,7 +1,7 @@
 import { Routes } from "@angular/router";
-// Removed: import { GoalSettingsComponent } from "./components/goal-settings/goal-settings.component";
-import { ReportsComponent } from "./features/reports.component";
 import { authGuard } from './core/guards/auth.guard';
+// GoalSettingsComponent import removed as it was superseded by GoalsModule
+// ReportsComponent import removed as it's now part of lazy-loaded ReportsModule
 
 export const routes: Routes = [
   {
@@ -28,7 +28,11 @@ export const routes: Routes = [
     loadChildren: () => import('./goals/goals.module').then(m => m.GoalsModule),
     canActivate: [authGuard]
   },
-  { path: "reports", component: ReportsComponent, canActivate: [authGuard] },
+  {
+    path: 'reports',
+    loadChildren: () => import('./reports/reports.module').then(m => m.ReportsModule),
+    canActivate: [authGuard]
+  },
   { path: "login", redirectTo: "/auth/login", pathMatch: "full" },
   { path: "registration", redirectTo: "/auth/register", pathMatch: "full" },
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },

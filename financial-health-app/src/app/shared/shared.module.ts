@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Added FormsModule, ReactiveFormsModule
 
 // Lucide Icons - already configured from previous step
-import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2 } from 'lucide-angular'; // Added CheckCircle2 icon
+import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check } from 'lucide-angular'; // Added Check icon
 
 // Components
 import { LucideIconComponent } from './components/lucide-icon/lucide-icon.component';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
 import { FilterBarComponent } from './components/filter-bar/filter-bar.component';
+import { ConfirmationModalComponent } from './components/confirmation-modal/confirmation-modal.component'; // New
 
 // Directives placeholder (no actual directives generated yet)
 // import { ExampleDirective } from './directives/example.directive';
@@ -23,6 +24,7 @@ import { FilterBarComponent } from './components/filter-bar/filter-bar.component
     LoadingSpinnerComponent,
     PaginationComponent,
     FilterBarComponent,
+    ConfirmationModalComponent, // Declare
     // ExampleDirective,
     // ExamplePipe
   ],
@@ -31,7 +33,7 @@ import { FilterBarComponent } from './components/filter-bar/filter-bar.component
     FormsModule, // For template-driven forms if used by shared components
     ReactiveFormsModule, // For reactive forms if used by shared components (e.g. FilterBar)
     LucideAngularModule.pick({ // Ensure all icons used by shared or exported components are here
-        Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2
+        Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check
     })
   ],
   exports: [
@@ -42,6 +44,7 @@ import { FilterBarComponent } from './components/filter-bar/filter-bar.component
     LoadingSpinnerComponent,
     PaginationComponent,
     FilterBarComponent,
+    ConfirmationModalComponent, // Export
     LucideAngularModule, // Also export LucideAngularModule if other modules need to use <lucide-icon> directly
     // ExampleDirective,
     // ExamplePipe

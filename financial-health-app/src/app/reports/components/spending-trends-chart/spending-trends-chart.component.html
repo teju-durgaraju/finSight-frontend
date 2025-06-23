@@ -1,0 +1,34 @@
+<div class="card shadow-sm">
+  <div class="card-header">
+    Spending Trends (Last 30 Days)
+  </div>
+  <div class="card-body">
+    <div *ngIf="(spendingData$ | async) as data; else loadingChart">
+      <div *ngIf="data.length > 0 && data[0].series.length > 0; else noData">
+        <ngx-charts-line-chart
+          [view]="view"
+          [scheme]="colorScheme"
+          [results]="data"
+          [legend]="legend"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="showXAxisLabel"
+          [showYAxisLabel]="showYAxisLabel"
+          [xAxisLabel]="xAxisLabel"
+          [yAxisLabel]="yAxisLabel"
+          [timeline]="timeline"
+          [xAxisTickFormatting]="dateTickFormatting">
+        </ngx-charts-line-chart>
+      </div>
+      <ng-template #noData>
+        <p class="text-center fst-italic p-3">No spending data available for the selected period to display the chart.</p>
+      </ng-template>
+    </div>
+    <ng-template #loadingChart>
+      <div class="d-flex justify-content-center align-items-center p-5">
+        <app-loading-spinner></app-loading-spinner>
+        <span class="ms-2">Loading chart data...</span>
+      </div>
+    </ng-template>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="modal-header">
+  <h4 class="modal-title">{{ title }}</h4>
+  <!-- <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button> -->
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button> <!-- Modified for placeholder -->
+</div>
+<div class="modal-body">
+  <p>{{ message }}</p>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn" [ngClass]="cancelButtonClass" (click)="onCancel()">
+    <app-lucide-icon name="x" class="me-1" size="16"></app-lucide-icon>{{ cancelText }}
+  </button>
+  <button type="button" class="btn" [ngClass]="confirmButtonClass" (click)="onConfirm()">
+    <app-lucide-icon name="check" class="me-1" size="16"></app-lucide-icon>{{ confirmText }}
+  </button>
+</div>
