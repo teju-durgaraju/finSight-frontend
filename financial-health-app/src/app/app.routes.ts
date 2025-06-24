@@ -1,7 +1,7 @@
 import { Routes } from "@angular/router";
 import { authGuard } from './core/guards/auth.guard';
-// GoalSettingsComponent import removed as it was superseded by GoalsModule
-// ReportsComponent import removed as it's now part of lazy-loaded ReportsModule
+// Direct component imports for routes that are now lazy-loaded have been removed.
+// e.g. DashboardComponent, TransactionListComponent, BudgetListComponent, GoalListComponent, ReportsComponent
 
 export const routes: Routes = [
   {
@@ -33,8 +33,15 @@ export const routes: Routes = [
     loadChildren: () => import('./reports/reports.module').then(m => m.ReportsModule),
     canActivate: [authGuard]
   },
+  {
+    path: 'insights',
+    loadChildren: () => import('./insights/insights.module').then(m => m.InsightsModule),
+    canActivate: [authGuard]
+  },
+  // Redirects for old top-level paths that are now part of feature modules or auth module
   { path: "login", redirectTo: "/auth/login", pathMatch: "full" },
   { path: "registration", redirectTo: "/auth/register", pathMatch: "full" },
+  // Default and wildcard routes
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },
   { path: "**", redirectTo: "/dashboard" }
 ];

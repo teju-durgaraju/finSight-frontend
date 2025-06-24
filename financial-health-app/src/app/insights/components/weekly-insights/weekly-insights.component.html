@@ -1,0 +1,67 @@
+<div class="card shadow-sm h-100">
+  <div class="card-header bg-success text-white">
+    <h5 class="mb-0 d-flex align-items-center">
+      <app-lucide-icon name="calendar-check-2" class="me-2"></app-lucide-icon>Weekly Financial Summary
+    </h5>
+  </div>
+  <div class="card-body">
+    <!-- Placeholder for date range selection
+    <div class="mb-3 d-flex gap-2">
+      <input type="date" class="form-control form-control-sm" placeholder="Start Date" #startDateInput>
+      <input type="date" class="form-control form-control-sm" placeholder="End Date" #endDateInput>
+      <button class="btn btn-sm btn-outline-secondary d-flex align-items-center"
+              (click)="fetchWeeklySummary(startDateInput.value, endDateInput.value)">
+        <app-lucide-icon name="refresh-cw" size="16" class="me-1"></app-lucide-icon> Load
+      </button>
+    </div>
+    <hr *ngIf="true">
+    -->
+
+    <div *ngIf="isLoading" class="text-center py-5">
+      <app-loading-spinner></app-loading-spinner>
+      <p class="mt-2">Loading weekly summary...</p>
+    </div>
+
+    <div *ngIf="errorMessage && !isLoading" class="alert alert-danger" role="alert">
+       <app-lucide-icon name="alert-triangle" class="me-1"></app-lucide-icon>
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && (weeklySummary$ | async) as summary; else noSummaryDataBlock">
+      <div *ngIf="summary">
+        <h6 class="text-muted">
+          Summary for: {{ summary.startDate | date:'mediumDate' }} - {{ summary.endDate | date:'mediumDate' }}
+        </h6>
+        <hr>
+        <div class="row mb-2">
+          <div class="col"><strong>Total Income:</strong></div>
+          <div class="col text-end text-success fw-bold">{{ summary.totalIncome | currency:'USD':'symbol' }}</div>
+        </div>
+        <div class="row mb-2">
+          <div class="col"><strong>Total Expenses:</strong></div>
+          <div class="col text-end text-danger fw-bold">{{ summary.totalExpenses | currency:'USD':'symbol' }}</div>
+        </div>
+        <div class="row mb-3">
+          <div class="col"><strong>Net Savings:</strong></div>
+          <div class="col text-end fw-bold" [ngClass]="summary.netSavings >= 0 ? 'text-success' : 'text-danger'">
+            {{ summary.netSavings | currency:'USD':'symbol' }}
+          </div>
+        </div>
+
+        <h6 class="mt-4">Spending by Category:</h6>
+        <ul class="list-group list-group-flush" *ngIf="summary.spendingByCategory && summary.spendingByCategory.length > 0; else noSpendingCategories">
+          <li *ngFor="let item of summary.spendingByCategory" class="list-group-item d-flex justify-content-between align-items-center px-0">
+            {{ item.category }}
+            <span class="badge bg-primary rounded-pill">{{ item.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+          </li>
+        </ul>
+        <ng-template #noSpendingCategories>
+          <p class="fst-italic">No spending by category data for this period.</p>
+        </ng-template>
+      </div>
+    </div>
+     <ng-template #noSummaryDataBlock>
+        <p *ngIf="!isLoading && !errorMessage" class="text-center fst-italic py-5">No weekly summary data available.</p>
+    </ng-template>
+  </div>
+</div>

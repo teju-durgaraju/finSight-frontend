@@ -1,0 +1,48 @@
+<div class="card shadow-sm h-100">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0 d-flex align-items-center">
+      <app-lucide-icon name="message-circle-question" class="me-2"></app-lucide-icon>Get Financial Tips
+    </h5>
+  </div>
+  <div class="card-body">
+    <form [formGroup]="tipQueryForm" (ngSubmit)="onSubmit()">
+      <div class="mb-3">
+        <label for="userQuery" class="form-label">Ask a financial question or describe a situation:</label>
+        <textarea id="userQuery" class="form-control" formControlName="userQuery" rows="4"
+                  placeholder="e.g., How can I save money for a down payment? or I want to understand my spending better."
+                  [ngClass]="{ 'is-invalid': f['userQuery'].touched && f['userQuery'].invalid }"></textarea>
+        <div *ngIf="f['userQuery'].touched && f['userQuery'].invalid" class="invalid-feedback">
+          <span *ngIf="f['userQuery'].errors?.['required']">Please enter your question or topic.</span>
+          <span *ngIf="f['userQuery'].errors?.['minlength']">Your input should be at least 10 characters long.</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary d-flex align-items-center" [disabled]="isLoading || tipQueryForm.invalid">
+        <app-lucide-icon name="send" class="me-2" size="18"></app-lucide-icon>
+        <span *ngIf="!isLoading">Get Tip</span>
+        <span *ngIf="isLoading">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Getting Tip...
+        </span>
+      </button>
+    </form>
+
+    <div *ngIf="isLoading && !advice && !errorMessage" class="mt-4 text-center">
+      <app-loading-spinner></app-loading-spinner>
+      <p class="mt-2">Fetching your personalized tip...</p>
+    </div>
+
+    <div *ngIf="advice && !isLoading" class="mt-4">
+      <h6><app-lucide-icon name="sparkles" class="me-1 text-success"></app-lucide-icon>Financial Tip:</h6>
+      <div class="alert alert-success" role="alert">
+        {{ advice }}
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage && !isLoading" class="mt-4">
+      <div class="alert alert-danger" role="alert">
+        <app-lucide-icon name="alert-triangle" class="me-1"></app-lucide-icon>
+        {{ errorMessage }}
+      </div>
+    </div>
+  </div>
+</div>
