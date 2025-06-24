@@ -1,0 +1,8 @@
+/* Admin Dashboard specific styles */
+.card-body a.btn {
+  /* Ensure buttons align nicely if text length varies */
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

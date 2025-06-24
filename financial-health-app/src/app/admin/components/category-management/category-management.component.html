@@ -1,0 +1,108 @@
+<div class="container-fluid mt-4">
+  <h3 class="mb-3">Category Management (Global)</h3>
+
+  <div class="row">
+    <!-- Category Form Card -->
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0 d-flex align-items-center">
+            <app-lucide-icon [name]="isEditMode ? 'edit' : 'plus-circle'" class="me-2"></app-lucide-icon>
+            {{ isEditMode ? 'Edit Category' : 'Add New Category' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="categoryName" class="form-label">Category Name:</label>
+              <input type="text" id="categoryName" class="form-control" formControlName="name"
+                     [ngClass]="{ 'is-invalid': f['name'].touched && f['name'].invalid }">
+              <div *ngIf="f['name'].touched && f['name'].invalid" class="invalid-feedback">
+                <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
+                <span *ngIf="f['name'].errors?.['minlength']">Name must be at least 3 characters.</span>
+                <span *ngIf="f['name'].errors?.['maxlength']">Name cannot exceed 50 characters.</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="categoryType" class="form-label">Category Type:</label>
+              <select id="categoryType" class="form-select" formControlName="type"
+                      [ngClass]="{ 'is-invalid': f['type'].touched && f['type'].invalid }">
+                <option *ngFor="let catType of categoryTypes" [value]="catType.value">{{ catType.label }}</option>
+              </select>
+              <div *ngIf="f['type'].touched && f['type'].errors?.['required']" class="invalid-feedback">
+                Type is required.
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-outline-secondary me-2" (click)="cancelEdit()" *ngIf="isEditMode">
+                <app-lucide-icon name="x" class="me-1" size="16"></app-lucide-icon>Cancel
+              </button>
+              <button type="submit" class="btn btn-primary d-flex align-items-center" [disabled]="categoryForm.invalid">
+                <app-lucide-icon [name]="isEditMode ? 'save' : 'plus'" class="me-1" size="16"></app-lucide-icon>
+                {{ isEditMode ? 'Update Category' : 'Add Category' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories List Card -->
+    <div class="col-md-8 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0 d-flex align-items-center"><app-lucide-icon name="list" class="me-2"></app-lucide-icon>Existing Global Categories</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="isLoading" class="text-center p-4">
+            <app-loading-spinner></app-loading-spinner>
+            <p class="mt-2">Loading categories...</p>
+          </div>
+          <div *ngIf="!isLoading && (categories\$ | async) as categories; else noCategoriesErrorBlock">
+            <div *ngIf="categories.length > 0; else noCategoriesFoundBlock">
+              <div class="table-responsive">
+                <table class="table table-sm table-striped table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let category of categories">
+                      <td>{{ category.id }}</td>
+                      <td>{{ category.name }}</td>
+                      <td><span class="badge" [ngClass]="{'bg-success-subtle text-success-emphasis': category.type === 'INCOME', 'bg-danger-subtle text-danger-emphasis': category.type === 'EXPENSE', 'bg-secondary-subtle text-secondary-emphasis': category.type === 'GENERAL'}">{{ category.type | titlecase }}</span></td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary me-2" (click)="editCategory(category)" title="Edit Category">
+                          <app-lucide-icon name="edit-3" size="16"></app-lucide-icon>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(category.id, category.name)" title="Delete Category">
+                          <app-lucide-icon name="trash-2" size="16"></app-lucide-icon>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <ng-template #noCategoriesFoundBlock>
+              <div class="alert alert-info text-center" role="alert">
+                No global categories found. Add some using the form.
+              </div>
+            </ng-template>
+          </div>
+           <ng-template #noCategoriesErrorBlock>
+            <div *ngIf="!isLoading" class="alert alert-warning text-center" role="alert">
+                Could not load global categories at this time.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap'; // Import NgbModule
 
 // Lucide Icons - already configured from previous step
-import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, CalendarCheck2, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check, MessageCircleQuestion, Send, Sparkles, AlertTriangle } from 'lucide-angular'; // Added CalendarCheck2
+import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check, Users, ArrowRightCircle, ListOrdered, SlidersHorizontal, MessageCircleQuestion, Send, Sparkles, AlertTriangle, UserCircle2, CheckCircle, XCircle, Edit3, Plus } from 'lucide-angular'; // Added Plus for CategoryManagement
 
 // Components
 import { LucideIconComponent } from './components/lucide-icon/lucide-icon.component';
@@ -35,7 +35,7 @@ import { ConfirmationModalComponent } from './components/confirmation-modal/conf
     ReactiveFormsModule,
     NgbModule, // Add NgbModule to imports
     LucideAngularModule.pick({ // Ensure all icons used by shared or exported components are here
-        Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check
+        Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check, Users, ArrowRightCircle, ListOrdered, SlidersHorizontal, MessageCircleQuestion, Send, Sparkles, AlertTriangle, UserCircle2, CheckCircle, XCircle, Edit3, Plus
     })
   ],
   exports: [

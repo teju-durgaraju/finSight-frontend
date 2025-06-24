@@ -1,0 +1,63 @@
+<div class="container-fluid mt-4">
+  <h2 class="mb-4">Admin Dashboard</h2>
+  <p class="text-muted">Welcome, Admin! Manage users and system settings from here.</p>
+  <hr class="mb-4">
+
+  <div class="row">
+    <!-- User Management Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-center mb-3">
+            <app-lucide-icon name="users" class="text-primary me-2" size="28"></app-lucide-icon>
+            <h5 class="card-title mb-0">User Management</h5>
+          </div>
+          <p class="card-text flex-grow-1">
+            View, edit roles, and manage user accounts within the application.
+          </p>
+          <a routerLink="/admin/users" class="btn btn-primary mt-auto d-flex align-items-center justify-content-center">
+            <app-lucide-icon name="arrow-right-circle" class="me-1" size="18"></app-lucide-icon>Go to User Management
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Management Card -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-center mb-3">
+            <app-lucide-icon name="list-ordered" class="text-success me-2" size="28"></app-lucide-icon>
+            <h5 class="card-title mb-0">Category Management</h5>
+          </div>
+          <p class="card-text flex-grow-1">
+            Manage global transaction and budget categories available to users.
+          </p>
+          <a routerLink="/admin/categories" class="btn btn-success mt-auto d-flex align-items-center justify-content-center">
+            <app-lucide-icon name="arrow-right-circle" class="me-1" size="18"></app-lucide-icon>Go to Category Management
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example: System Settings Card (Commented out for now) -->
+    <!--
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-center mb-3">
+            <app-lucide-icon name="sliders-horizontal" class="text-warning me-2" size="28"></app-lucide-icon>
+            <h5 class="card-title mb-0">System Settings</h5>
+          </div>
+          <p class="card-text flex-grow-1">
+            Configure application-wide settings and parameters.
+          </p>
+          <a routerLink="/admin/settings" class="btn btn-warning mt-auto text-dark d-flex align-items-center justify-content-center">
+             <app-lucide-icon name="arrow-right-circle" class="me-1" size="18"></app-lucide-icon>Go to System Settings
+          </a>
+        </div>
+      </div>
+    </div>
+    -->
+  </div>
+</div>
