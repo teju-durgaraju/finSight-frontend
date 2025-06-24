@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
-// import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap'; // Will not resolve if not installed
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap'; // Assuming this type is available
 
 @Component({
   selector: 'app-confirmation-modal',
   templateUrl: './confirmation-modal.component.html',
   styleUrls: ['./confirmation-modal.component.scss']
+  // Not standalone, part of SharedModule
 })
 export class ConfirmationModalComponent {
   @Input() title: string = 'Confirm Action';
@@ -12,18 +13,15 @@ export class ConfirmationModalComponent {
   @Input() confirmText: string = 'Confirm';
   @Input() cancelText: string = 'Cancel';
   @Input() confirmButtonClass: string = 'btn-danger';
-  @Input() cancelButtonClass: string = 'btn-secondary';
+  @Input() cancelButtonClass: string = 'btn-outline-secondary';
 
-  // constructor(public activeModal: NgbActiveModal) {} // Requires NgbActiveModal
-  constructor() {} // Placeholder constructor
+  constructor(public activeModal: NgbActiveModal) {} // Requires NgbActiveModal type
 
   onConfirm(): void {
-    // this.activeModal.close(true); // Requires NgbActiveModal
-    console.log('Confirmed (NgbActiveModal not available)');
+    this.activeModal.close(true);
   }
 
   onCancel(): void {
-    // this.activeModal.dismiss(false); // Requires NgbActiveModal
-    console.log('Cancelled (NgbActiveModal not available)');
+    this.activeModal.dismiss(false);
   }
 }

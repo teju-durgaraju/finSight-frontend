@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { Goal } from '../../../models/goal.model';
 import { GoalService } from '../../../core/services/goal.service';
 import { Router } from '@angular/router';
+import { ModalService } from '../../../core/services/modal.service'; // Import ModalService
 
 @Component({
   selector: 'app-goal-list',
@@ -14,7 +15,8 @@ export class GoalListComponent implements OnInit {
 
   constructor(
     private goalService: GoalService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService // Injected ModalService
   ) {
     this.goals$ = this.goalService.goals$;
   }
@@ -31,24 +33,26 @@ export class GoalListComponent implements OnInit {
     this.router.navigate(['/goals/edit', goalId]);
   }
 
-  deleteGoal(goalId: number): void {
-    const confirmed = confirm('Are you sure you want to delete this financial goal?');
-    if (confirmed) {
-      this.goalService.deleteGoal(goalId).subscribe({
-        next: () => {
-          console.log(\`Goal \${goalId} deleted successfully\`);
-        },
-        error: (err) => {
-          console.error(\`Error deleting goal \${goalId}\`, err);
-        }
-      });
+  async deleteGoal(goalId: number): Promise<void> { // Changed to async
+    try {
+      const confirmed = await this.modalService.confirm(
+        'Delete Goal',
+        'Are you sure you want to delete this financial goal?',
+        'Delete', 'Cancel', 'btn-danger', 'btn-outline-secondary'
+      );
+      if (confirmed) {
+        this.goalService.deleteGoal(goalId).subscribe({
+          next: () => console.log(\`Goal \${goalId} deleted successfully\`),
+          error: (err) => console.error(\`Error deleting goal \${goalId}\`, err)
+        });
+      }
+    } catch (error) {
+      console.log('Delete goal modal dismissed.');
     }
   }
 
   calculateProgress(goal: Goal): number {
-    if (!goal || goal.targetAmount === 0) {
-      return 0;
-    }
+    if (!goal || goal.targetAmount === 0) return 0;
     const currentAmount = goal.currentAmount || 0;
     return Math.min(Math.round((currentAmount / goal.targetAmount) * 100), 100);
   }

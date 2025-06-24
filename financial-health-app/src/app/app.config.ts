@@ -1,6 +1,6 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
-import { importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, importProvidersFrom } from '@angular/core'; // Added importProvidersFrom here for tidiness
 import { HttpClientModule } from '@angular/common/http';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap'; // Import NgbModule
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimations } from "@angular/platform-browser/animations";
 import { provideRouter } from '@angular/router';
@@ -11,7 +11,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    importProvidersFrom(HttpClientModule),
+    importProvidersFrom(HttpClientModule, NgbModule), // Add NgbModule here
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),

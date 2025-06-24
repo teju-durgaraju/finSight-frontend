@@ -4,7 +4,7 @@ import { map, switchMap, filter } from 'rxjs/operators';
 import { Transaction } from '../../../models/transaction.model';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { Router } from '@angular/router';
-import { ModalService } from '../../../core/services/modal.service'; // Import ModalService
+import { ModalService } from '../../../core/services/modal.service';
 import { TransactionFilters } from '../../../shared/components/filter-bar/filter-bar';
 
 export interface SortConfig {
@@ -35,7 +35,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   constructor(
     private transactionService: TransactionService,
     private router: Router,
-    private modalService: ModalService // Injected ModalService
+    private modalService: ModalService
   ) {
     this.transactionsRaw$ = this.transactionService.transactions$;
     this.displayedTransactions$ = this.transactionsRaw$.pipe(
@@ -117,27 +117,25 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/transactions/edit', id]);
   }
 
-  async deleteTransaction(id: number): Promise<void> { // Changed to async
+  async deleteTransaction(id: number): Promise<void> {
     try {
       const confirmed = await this.modalService.confirm(
         'Delete Transaction',
         'Are you sure you want to delete this transaction?',
-        'Delete', // confirmText
-        'Cancel', // cancelText
-        'btn-danger', // confirmButtonClass
-        'btn-outline-secondary' // cancelButtonClass
+        'Delete',
+        'Cancel',
+        'btn-danger',
+        'btn-outline-secondary'
       );
       if (confirmed) {
         this.transactionService.deleteTransaction(id).subscribe({
           next: () => {
             console.log('Transaction deleted successfully');
-            // Optionally call loadTransactions() or rely on BehaviorSubject for list update
           },
           error: (err) => console.error('Failed to delete transaction', err)
         });
       }
     } catch (error) {
-      // This block will be executed if modalService.confirm promise rejects (e.g. dismissed)
       console.log('Delete transaction modal dismissed.');
     }
   }

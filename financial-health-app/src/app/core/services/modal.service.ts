@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-// import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap'; // Requires installation
+import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Injectable({
@@ -7,8 +7,7 @@ import { ConfirmationModalComponent } from '../../shared/components/confirmation
 })
 export class ModalService {
 
-  // constructor(private ngbModalService: NgbModal) {} // Requires NgbModal
-  constructor() {} // Placeholder
+  constructor(private ngbModalService: NgbModal) {}
 
   public confirm(
     title: string,
@@ -16,30 +15,24 @@ export class ModalService {
     confirmText: string = 'Confirm',
     cancelText: string = 'Cancel',
     confirmButtonClass: string = 'btn-danger',
-    cancelButtonClass: string = 'btn-secondary',
-    // modalOptions?: NgbModalOptions // Requires NgbModalOptions
-    modalOptions?: any // Placeholder
+    cancelButtonClass: string = 'btn-outline-secondary',
+    modalOptions?: NgbModalOptions
   ): Promise<boolean> {
-    // const modalRef = this.ngbModalService.open(ConfirmationModalComponent, { centered: true, ...modalOptions });
-    // modalRef.componentInstance.title = title;
-    // modalRef.componentInstance.message = message;
-    // modalRef.componentInstance.confirmText = confirmText;
-    // modalRef.componentInstance.cancelText = cancelText;
-    // modalRef.componentInstance.confirmButtonClass = confirmButtonClass;
-    // modalRef.componentInstance.cancelButtonClass = cancelButtonClass;
+    const modalRef = this.ngbModalService.open(ConfirmationModalComponent, { centered: true, backdrop: 'static', ...modalOptions });
+    modalRef.componentInstance.title = title;
+    modalRef.componentInstance.message = message;
+    modalRef.componentInstance.confirmText = confirmText;
+    modalRef.componentInstance.cancelText = cancelText;
+    modalRef.componentInstance.confirmButtonClass = confirmButtonClass;
+    modalRef.componentInstance.cancelButtonClass = cancelButtonClass;
 
-    // return modalRef.result.then(
-    //   (result) => {
-    //     return !!result;
-    //   },
-    //   (reason) => {
-    //     return false;
-    //   }
-    // );
-
-    // Fallback to window.confirm if NgbModal is not available/installed
-    console.warn("ModalService: NgbModal not available/installed. Falling back to window.confirm(). Install @ng-bootstrap/ng-bootstrap and uncomment NgbModal related code.");
-    const result = window.confirm(\`\${title}\n\n\${message}\`);
-    return Promise.resolve(result);
+    return modalRef.result.then(
+      (result) => {
+        return !!result; // Resolves to true if modalRef.close(true) was called
+      },
+      (reason) => {
+        return false; // Resolves to false if modal was dismissed
+      }
+    );
   }
 }

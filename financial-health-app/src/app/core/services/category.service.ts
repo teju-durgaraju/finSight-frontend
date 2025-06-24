@@ -11,8 +11,8 @@ import { HttpParams } from '@angular/common/http';
   providedIn: 'root'
 })
 export class CategoryService {
-  // Set to true when backend endpoint '/api/v1/categories' is available and configured.
-  private readonly API_ENDPOINT_EXISTS = false;
+  // NOTE: To enable API calls for categories, the backend endpoint /api/v1/categories must be available.
+  // For development without a backend, this service falls back to mock data if the API call fails.
 
   private mockCategories: Category[] = [
     { id: 1, name: 'Food', type: 'EXPENSE' }, { id: 2, name: 'Transport', type: 'EXPENSE' },
@@ -28,55 +28,40 @@ export class CategoryService {
   public categories$: Observable<Category[]> = this.categoriesSubject.asObservable().pipe(
     shareReplay(1)
   );
-  private categoriesFetched = false;
+  private categoriesApiFetchedSuccessfully = false;
 
   constructor(
     private apiService: ApiService,
     private errorHandlingService: ErrorHandlingService
   ) {
-    this.loadCategories().subscribe();
+    // Initial load attempt.
+    this.loadCategoriesFromApiOrUseMock().subscribe();
   }
 
   private mapDtoToModel(dto: CategoryResponseDto): Category {
-    return { ...dto }; // Assuming DTO and Model are identical for now
+    return { ...dto }; // Assuming DTO and Model are currently identical
   }
 
-  private loadCategories(): Observable<Category[]> {
-    if (this.API_ENDPOINT_EXISTS) {
-      return this.apiService.get<CategoryResponseDto[]>('/v1/categories', new HttpParams()).pipe(
-        map(dtos => dtos.map(dto => this.mapDtoToModel(dto))),
-        tap(models => {
-          this.categoriesSubject.next(models);
-          this.categoriesFetched = true;
-        }),
-        catchError(err => {
-          this.errorHandlingService.showMessage('Failed to fetch categories from API. Using mock data.');
-          console.error('API fetch categories failed:', err);
-          this.categoriesSubject.next(this.mockCategories);
-          this.categoriesFetched = true;
-          return of(this.mockCategories);
-        })
-      );
-    } else {
-      console.warn("CategoryService: API_ENDPOINT_EXISTS is false. Using mock categories. Define '/api/v1/categories' and set API_ENDPOINT_EXISTS to true for API integration.");
-      this.categoriesSubject.next(this.mockCategories);
-      this.categoriesFetched = true;
-      return of(this.mockCategories);
-    }
+  private loadCategoriesFromApiOrUseMock(): Observable<Category[]> {
+    // The actual API endpoint for categories is GET /api/v1/categories
+    return this.apiService.get<CategoryResponseDto[]>('/v1/categories', new HttpParams()).pipe(
+      map(dtos => dtos.map(dto => this.mapDtoToModel(dto))),
+      tap(models => {
+        this.categoriesSubject.next(models);
+        this.categoriesApiFetchedSuccessfully = true;
+        console.log('CategoryService: Categories loaded from API successfully.');
+      }),
+      catchError(err => {
+        // Do not use ErrorHandlingService.showMessage here as it might be too intrusive for a fallback.
+        console.error('CategoryService: API call to /v1/categories failed. Falling back to mock categories.', err);
+        this.categoriesSubject.next(this.mockCategories);
+        this.categoriesApiFetchedSuccessfully = false;
+        return of(this.mockCategories);
+      })
+    );
   }
 
   public getCategories(type?: 'INCOME' | 'EXPENSE'): Observable<Category[]> {
-    // This method relies on categories$ being populated by loadCategories in constructor.
-    // categoriesFetched flag ensures loadCategories isn't called repeatedly if getCategories is called multiple times,
-    // though with shareReplay(1) and constructor load, direct re-fetch logic here is less critical.
-    if (!this.categoriesFetched) {
-      // This path should ideally not be hit frequently if constructor logic is sound.
-      // It's a fallback to ensure data is loaded if it wasn't for some reason.
-      return this.loadCategories().pipe(
-        map(categories => this.filterCategoriesByType(categories, type))
-      );
-    }
-
     return this.categories$.pipe(
       map(categories => this.filterCategoriesByType(categories, type))
     );
@@ -84,10 +69,9 @@ export class CategoryService {
 
   private filterCategoriesByType(categories: Category[], type?: 'INCOME' | 'EXPENSE'): Category[] {
     if (type) {
-      // Include categories of the specified type AND 'GENERAL' type categories.
       return categories.filter(cat => cat.type === type || cat.type === 'GENERAL');
     }
-    return categories; // If no type filter, return all (or could be all non-GENERAL, depending on reqs)
+    return categories;
   }
 
   public getCategoryNameById(id: number): Observable<string | undefined> {
@@ -103,7 +87,11 @@ export class CategoryService {
   }
 
   public refreshCategories(): Observable<Category[]> {
-    this.categoriesFetched = false; // Reset flag to allow refetch from API (if enabled)
-    return this.loadCategories();
+    console.log('CategoryService: Refreshing categories from API...');
+    return this.loadCategoriesFromApiOrUseMock();
+  }
+
+  public haveCategoriesBeenLoadedFromApi(): boolean {
+    return this.categoriesApiFetchedSuccessfully;
   }
 }

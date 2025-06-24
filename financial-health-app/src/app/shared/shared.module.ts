@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Added FormsModule, ReactiveFormsModule
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap'; // Import NgbModule
 
 // Lucide Icons - already configured from previous step
 import { LucideAngularModule, Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check } from 'lucide-angular'; // Added Check icon
@@ -30,16 +31,18 @@ import { ConfirmationModalComponent } from './components/confirmation-modal/conf
   ],
   imports: [
     CommonModule,
-    FormsModule, // For template-driven forms if used by shared components
-    ReactiveFormsModule, // For reactive forms if used by shared components (e.g. FilterBar)
+    FormsModule,
+    ReactiveFormsModule,
+    NgbModule, // Add NgbModule to imports
     LucideAngularModule.pick({ // Ensure all icons used by shared or exported components are here
         Home, Settings, DollarSign, LogIn, LogOut, User, UserPlus, List, Edit, Edit2, Trash2, BarChart2, PieChart, Target, PlusCircle, Save, Activity, Filter, ChevronDown, ChevronUp, Calendar, ArrowUpCircle, ArrowDownCircle, Zap, Settings2, RotateCw, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, X, Flag, CheckCircle2, Check
     })
   ],
   exports: [
-    CommonModule, // Export CommonModule for common directives like ngIf, ngFor
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    NgbModule, // Re-export NgbModule
     LucideIconComponent,
     LoadingSpinnerComponent,
     PaginationComponent,
